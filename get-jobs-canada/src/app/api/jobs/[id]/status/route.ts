@@ -4,6 +4,8 @@ import { Job } from "@/lib/models/Job";
 import { getAuth } from "@/lib/auth/auth";
 import mongoose from "mongoose";
 
+export const dynamic = "force-dynamic";
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

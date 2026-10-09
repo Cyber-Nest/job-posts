@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 
+import { apiClient } from "@/lib/api-client";
+
 export default function AdminLayout({
   children,
 }: {
@@ -23,8 +25,8 @@ export default function AdminLayout({
   useEffect(() => {
     if (isAuthPage) return;
 
-    fetch("/api/admin/auth/me")
-      .then((r) => r.json())
+    apiClient
+      .get("/admin/auth/me")
       .then((d) => {
         if (d.email) setAdminEmail(d.email);
       })
@@ -32,10 +34,9 @@ export default function AdminLayout({
   }, [isAuthPage]);
 
   const handleLogout = async () => {
-    await fetch("/api/admin/auth/logout", {
-      method: "POST",
-    });
-
+    try {
+      await apiClient.post("/admin/auth/logout");
+    } catch (err) {}
     router.push("/admin/login");
   };
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import * as XLSX from "xlsx";
+import { apiClient } from "@/lib/api-client";
 import {
   Ticket,
   Search,
@@ -102,8 +103,7 @@ export default function CouponManagementPage() {
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
     try {
-      const res = await fetch("/api/admin/coupons/stats");
-      const data = await res.json();
+      const data = await apiClient.get("/admin/coupons/stats");
       if (data.success) setStats(data.stats);
     } catch (e) {
       console.error(e);
@@ -116,39 +116,21 @@ export default function CouponManagementPage() {
     fetchStats();
   }, [fetchStats]);
 
-  // ─── Seed Coupons ──────────────────────────────────────────────────────────
-
-  // const handleSeed = async () => {
-  //   setSeeding(true);
-  //   try {
-  //     const res = await fetch("/api/admin/coupons/seed", { method: "POST" });
-  //     const data = await res.json();
-  //     if (data.success) {
-  //       setSeedDone(true);
-  //       await fetchStats();
-  //     }
-  //   } catch (e) {
-  //     console.error(e);
-  //   } finally {
-  //     setSeeding(false);
-  //   }
-  // };
-
   // ─── Fetch Coupons (Table) ─────────────────────────────────────────────────
 
   const fetchCoupons = useCallback(async () => {
     if (!selectedPackage) return;
     setTableLoading(true);
     try {
-      const params = new URLSearchParams({
-        packageName: selectedPackage,
-        page: String(page),
-        ...(statusFilter && { status: statusFilter }),
-        ...(assignedFilter && { assigned: assignedFilter }),
-        ...(search && { search }),
+      const data = await apiClient.get("/admin/coupons", {
+        params: {
+          packageName: selectedPackage,
+          page: page,
+          ...(statusFilter && { status: statusFilter }),
+          ...(assignedFilter && { assigned: assignedFilter }),
+          ...(search && { search }),
+        },
       });
-      const res = await fetch(`/api/admin/coupons?${params}`);
-      const data = await res.json();
       if (data.success) {
         setCoupons(data.coupons);
         setPagination(data.pagination);
@@ -194,19 +176,13 @@ export default function CouponManagementPage() {
     setAssignLoading(true);
     setAssignError("");
     try {
-      const res = await fetch(
-        `/api/admin/coupons/${assigningCoupon._id}/assign`,
+      const data = await apiClient.post(
+        `/admin/coupons/${assigningCoupon._id}/assign`,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            assignedName: assignName.trim(),
-            assignedEmail: assignEmail.trim(),
-          }),
-        },
+          assignedName: assignName.trim(),
+          assignedEmail: assignEmail.trim(),
+        }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Assignment failed");
 
       setAssigningCoupon(null);
       setAssignName("");
@@ -226,14 +202,13 @@ export default function CouponManagementPage() {
     if (!selectedPackage) return;
     setExportLoading(true);
     try {
-      // Fetch ALL coupons for the selected package (no pagination)
-      const params = new URLSearchParams({
-        packageName: selectedPackage,
-        page: "1",
-        pageSize: "9999",
+      const data = await apiClient.get("/admin/coupons", {
+        params: {
+          packageName: selectedPackage,
+          page: 1,
+          pageSize: 9999,
+        },
       });
-      const res = await fetch(`/api/admin/coupons?${params}`);
-      const data = await res.json();
 
       if (!data.success || !data.coupons) return;
 

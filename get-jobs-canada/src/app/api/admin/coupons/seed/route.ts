@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db/mongoose";
 import { requireAdmin } from "@/lib/admin/adminAuth";
 import { PromoCode } from "@/lib/models/PromoCode";
 
+export const dynamic = "force-dynamic";
+
 const PACKAGE_PREFIX: Record<string, string> = {
   Starter: "ST",
   Deluxe: "DE",

@@ -21,38 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/auth-client";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut" as const,
-    },
-  },
-};
-
-const stagger = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-// Icon map — stays client-side
-const ICON_MAP: Record<string, React.ElementType> = {
-  Starter: Star,
-  Deluxe: Zap,
-  Ultimate: Building2,
-  "Pro Plan": HeartHandshake,
-  Unlimited: Crown,
-};
-
-// DB package shape
+import { apiClient } from "@/lib/api-client";
 interface PkgData {
   _id: string;
   name: string;
@@ -64,27 +33,55 @@ interface PkgData {
   highlight: boolean;
   darkVariant: boolean;
   order: number;
+  credits: number;
+  expiryDays: number;
+  unlimitedJobs: boolean;
+  active?: boolean;
 }
 
-// Enriched package
-type PkgDisplay = PkgData & { icon: React.ElementType };
+interface PkgDisplay extends PkgData {
+  icon: any;
+}
+
+/* ── Constants & Icon Mapping ────────────────────────────────────────── */
+const ICON_MAP: Record<string, any> = {
+  Starter: Star,
+  Deluxe: Zap,
+  Ultimate: Building2,
+  "Pro Plan": HeartHandshake,
+  Unlimited: Crown,
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: "easeOut" as const },
+  },
+};
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05 } },
+};
 
 const faqs = [
   {
-    q: "How long are job postings active?",
-    a: "Postings remain active for 180 days across standard packages (and 365 days for Unlimited plans).",
+    q: "Do job posting credits expire?",
+    a: "No! All job credits purchased on GetJobsCanada never expire. You can use them whenever you are ready to hire across Canada.",
   },
   {
-    q: "Can I edit my job posting after it's published?",
-    a: "Yes, you can update role requirements, descriptions, and salary info anytime from your Employer Dashboard.",
+    q: "Can I upgrade my package later?",
+    a: "Yes, you can purchase additional credit packages or high-volume enterprise plans anytime from your employer dashboard.",
   },
   {
-    q: "Do purchased job posting credits expire?",
-    a: "No! Credits for Starter, Deluxe, Ultimate, and Pro plans never expire, allowing you to post whenever you need talent.",
+    q: "How do featured listings work?",
+    a: "Featured job posts are highlighted at the top of search feeds, tagged with priority badges, and given premium employer placement.",
   },
   {
-    q: "Can I upgrade or purchase additional packages?",
-    a: "Yes, credits stack automatically in your account upon purchase.",
+    q: "Are there any hidden subscription or recurring fees?",
+    a: "None at all. All our packages are transparent one-time payments with zero recurring charges or hidden fees.",
   },
 ];
 
@@ -100,24 +97,15 @@ export default function PricingPage() {
   } = useQuery({
     queryKey: ["packages"],
     queryFn: async () => {
-      const res = await fetch(`/api/packages?_t=${Date.now()}`, {
-        cache: "no-store",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch packages");
-      }
-
-      return res.json();
+      return apiClient.get("/packages");
     },
-
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
 
   const pkgList = useMemo(() => {
-    const packages = packagesResponse?.packages || [];
+    const packages = packagesResponse?.data || packagesResponse?.packages || [];
 
     return packages.map((p: PkgData) => ({
       ...p,
@@ -185,25 +173,17 @@ export default function PricingPage() {
       setPromoLoading(true);
       setPromoError("");
 
-      const response = await fetch("/api/promo/check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          packageName: selectedPkg.name,
-          promoCode,
-        }),
+      const res = await apiClient.post("/payments/create-checkout-session", {
+        packageName: selectedPkg.name,
+        promoCode: promoCode.trim(),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Invalid promo code");
+      if (res.freePromo || res.success) {
+        setPromoApplied(true);
+        toast.success("Promo code applied successfully.");
+      } else {
+        throw new Error(res.error || "Invalid promo code");
       }
-
-      setPromoApplied(true);
-      toast.success("Promo code applied successfully.");
     } catch (error: any) {
       setPromoApplied(false);
       setPromoError(error.message || "Something went wrong");
@@ -219,26 +199,12 @@ export default function PricingPage() {
     try {
       setLoadingPackage(selectedPkg.name);
 
-      const endpoint = promoApplied
-        ? "/api/promo/verify"
-        : "/api/stripe/create-checkout-session";
+      const endpoint = promoApplied ? "/promo/verify" : "/payments/create-checkout-session";
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          packageName: selectedPkg.name,
-          promoCode: promoApplied ? promoCode : null,
-        }),
+      const data = await apiClient.post(endpoint, {
+        packageName: selectedPkg.name,
+        promoCode: promoApplied ? promoCode : null,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to process request");
-      }
 
       // PROMO FLOW
       if (promoApplied) {

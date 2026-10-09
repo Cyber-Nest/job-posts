@@ -5,6 +5,8 @@ import { Job } from "@/lib/models/Job";
 import { Employer } from "@/lib/models/Employer";
 import { getAuth } from "@/lib/auth/auth";
 
+export const dynamic = "force-dynamic";
+
 const VALID_STATUSES = ["pending", "reviewed", "shortlisted", "rejected"] as const;
 type AppStatus = (typeof VALID_STATUSES)[number];
 

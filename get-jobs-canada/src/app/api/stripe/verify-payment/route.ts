@@ -8,6 +8,8 @@ import { EmployerPackageHistory } from "@/lib/models/EmployerPackageHistory";
 import { PaymentTransaction } from "@/lib/models/PaymentTransaction";
 import { Package } from "@/lib/models/Package";
 
+export const dynamic = "force-dynamic";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: NextRequest) {

@@ -10,6 +10,8 @@ import { EmployerPackageHistory } from "@/lib/models/EmployerPackageHistory";
 import { PaymentTransaction } from "@/lib/models/PaymentTransaction";
 import { Package } from "@/lib/models/Package";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     await connectDB();

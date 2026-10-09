@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
 
 const MONGODB_URI = process.env.MONGODB_URI;
-const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || "get_jobs_canada";
+const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || "jobs_posts";
 
 if (!MONGODB_URI) {
   console.error("❌ Error: MONGODB_URI is not defined in .env.local");

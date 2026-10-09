@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db/mongoose";
 import { requireAdmin } from "@/lib/admin/adminAuth";
 import { Job } from "@/lib/models/Job";
 
+export const dynamic = "force-dynamic";
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

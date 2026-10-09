@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db/mongoose";
 import { requireAdmin } from "@/lib/admin/adminAuth";
 import { Package, DEFAULT_PACKAGES } from "@/lib/models/Package";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     const admin = await requireAdmin(request);

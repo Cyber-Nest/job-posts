@@ -10,6 +10,8 @@ import { PromoCode } from "@/lib/models/PromoCode";
 import { PaymentTransaction } from "@/lib/models/PaymentTransaction";
 import { Package } from "@/lib/models/Package";
 
+export const dynamic = "force-dynamic";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 const PACKAGE_CONFIG = {

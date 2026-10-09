@@ -5,6 +5,8 @@ import { Employer } from "@/lib/models/Employer";
 import { Job } from "@/lib/models/Job";
 import { getAuth } from "@/lib/auth/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();

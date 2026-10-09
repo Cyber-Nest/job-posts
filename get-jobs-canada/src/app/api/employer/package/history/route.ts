@@ -8,6 +8,8 @@ import { Employer } from "@/lib/models/Employer";
 import { EmployerPackageHistory } from "@/lib/models/EmployerPackageHistory";
 import { PaymentTransaction } from "@/lib/models/PaymentTransaction";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();

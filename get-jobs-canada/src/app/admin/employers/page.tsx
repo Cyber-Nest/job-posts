@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
 import {
   Search,
   Building2,
@@ -47,10 +48,9 @@ export default function AdminEmployersPage() {
   const fetchEmployers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/employers`);
-      const data = await res.json();
+      const data = await apiClient.get("/admin/employers");
       if (data.success) {
-        setAllEmployers(data.employers);
+        setAllEmployers(data.data || data.employers);
       } else {
         toast.error("Failed to load employers.");
       }

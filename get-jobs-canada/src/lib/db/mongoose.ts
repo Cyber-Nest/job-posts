@@ -41,7 +41,7 @@ export async function connectDB(): Promise<typeof mongoose> {
 
   if (!cached?.promise) {
     cached!.promise = mongoose.connect(MONGODB_URI!, {
-      dbName: process.env.MONGODB_DB_NAME || "get_jobs_canada",
+      dbName: process.env.MONGODB_DB_NAME || "jobs_posts",
     });
   }
 

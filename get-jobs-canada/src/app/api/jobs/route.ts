@@ -6,6 +6,8 @@ import { getAuth } from "@/lib/auth/auth";
 import { generateJobId } from "@/lib/utils/generateJobId";
 import { EmployerPackage } from "@/lib/models/EmployerPackage";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();

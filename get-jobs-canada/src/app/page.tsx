@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useInView } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
 import {
   Search,
   MapPin,
@@ -296,11 +297,7 @@ export default function HomePage() {
   // Fetch featured jobs from backend
   const { data: jobsResponse, isLoading: jobsLoading } = useQuery({
     queryKey: ["home-jobs"],
-    queryFn: async () => {
-      const res = await fetch("/api/jobs?limit=6");
-      if (!res.ok) throw new Error("Failed to fetch jobs");
-      return res.json();
-    },
+    queryFn: () => apiClient.get("/jobs", { params: { limit: 6 } }),
   });
 
   // Search jobs
@@ -310,15 +307,14 @@ export default function HomePage() {
     isFetching: isSearching,
   } = useQuery({
     queryKey: ["search-jobs", searchQuery, searchLocation],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchQuery) params.append("search", searchQuery);
-      if (searchLocation) params.append("province", searchLocation);
-      params.append("limit", "8");
-      const res = await fetch(`/api/jobs?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to search jobs");
-      return res.json();
-    },
+    queryFn: () =>
+      apiClient.get("/jobs", {
+        params: {
+          search: searchQuery || undefined,
+          province: searchLocation || undefined,
+          limit: 8,
+        },
+      }),
     enabled: false,
   });
 

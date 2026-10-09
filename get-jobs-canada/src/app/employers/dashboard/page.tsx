@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
 import {
   Briefcase,
   Plus,
@@ -1001,13 +1002,7 @@ export default function EmployerDashboard() {
 
   const { data: packageResponse, isLoading: packageLoading } = useQuery({
     queryKey: ["employer-package", session?.user?.id],
-    queryFn: async () => {
-      const res = await fetch("/api/employer/package", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch package");
-      return res.json();
-    },
+    queryFn: () => apiClient.get("/employer/package"),
     enabled: !!session?.user,
   });
 
@@ -1019,43 +1014,26 @@ export default function EmployerDashboard() {
       currentPage,
       session?.user?.id,
     ],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (searchQuery) params.append("search", searchQuery);
-      params.append("page", currentPage.toString());
-      params.append("limit", itemsPerPage.toString());
-
-      const res = await fetch(`/api/employer/jobs?${params.toString()}`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch jobs");
-      return res.json();
-    },
+    queryFn: () =>
+      apiClient.get("/employer/jobs", {
+        params: {
+          status: statusFilter !== "all" ? statusFilter : undefined,
+          search: searchQuery || undefined,
+          page: currentPage,
+          limit: itemsPerPage,
+        },
+      }),
     enabled: !!session?.user,
   });
 
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ["employer-stats", session?.user?.id],
-    queryFn: async () => {
-      const res = await fetch("/api/employer/stats", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch stats");
-      return res.json();
-    },
+    queryFn: () => apiClient.get("/employer/stats"),
     enabled: !!session?.user,
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (jobId: string) => {
-      const res = await fetch(`/api/jobs/${jobId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to delete job");
-      return res.json();
-    },
+    mutationFn: (jobId: string) => apiClient.delete(`/jobs/${jobId}`),
     onSuccess: () => {
       toast.success("Job deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["employer-jobs"] });
@@ -1068,22 +1046,13 @@ export default function EmployerDashboard() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       jobId,
       status,
     }: {
       jobId: string;
       status: string;
-    }) => {
-      const res = await fetch(`/api/jobs/${jobId}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ status }),
-      });
-      if (!res.ok) throw new Error("Failed to update status");
-      return res.json();
-    },
+    }) => apiClient.put(`/jobs/${jobId}/status`, { status }),
     onSuccess: () => {
       toast.success("Job status updated");
       queryClient.invalidateQueries({ queryKey: ["employer-jobs"] });
@@ -1129,7 +1098,8 @@ export default function EmployerDashboard() {
     setDownloadingJobId(jobId);
     try {
       toast.loading("Preparing download...", { id: "download" });
-      const response = await fetch(`/api/jobs/${jobId}/download`, {
+      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api/v1";
+      const response = await fetch(`${baseUrl}/jobs/${jobId}/download`, {
         credentials: "include",
       });
 

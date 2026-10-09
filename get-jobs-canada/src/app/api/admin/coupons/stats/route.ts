@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db/mongoose";
 import { requireAdmin } from "@/lib/admin/adminAuth";
 import { PromoCode } from "@/lib/models/PromoCode";
 
+export const dynamic = "force-dynamic";
+
 const PACKAGES = ["Starter", "Deluxe", "Ultimate", "Pro Plan", "Unlimited"];
 
 export async function GET(request: NextRequest) {

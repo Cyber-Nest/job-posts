@@ -1,29 +1,114 @@
 "use client";
 
-import { createAuthClient } from "better-auth/react";
 import { ReactNode, useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { apiClient } from "@/lib/api-client";
 
-const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+export interface SignInFn {
+  (credentials: any): Promise<any>;
+  email: (credentials: { email: string; password: string }) => Promise<any>;
+  social: (options: { provider: string; callbackURL?: string }) => Promise<any>;
+}
+
+export interface SignUpFn {
+  (data: any): Promise<any>;
+  email: (data: any) => Promise<any>;
+}
+
+const baseSignIn = async function ({ email, password }: any) {
+  try {
+    const data = await apiClient.post("/auth/login", { email, password });
+    return { data, error: null };
+  } catch (err: any) {
+    return { data: null, error: { message: err.message || "Login failed" } };
+  }
+};
+
+const signInEmail = async ({ email, password }: { email: string; password: string }) => {
+  return baseSignIn({ email, password });
+};
+
+const signInSocial = async ({ provider, callbackURL }: { provider: string; callbackURL?: string }) => {
+  try {
+    window.location.href = `/api/auth/social/${provider}?callbackUrl=${encodeURIComponent(callbackURL || '/')}`;
+    return { data: true, error: null };
+  } catch (err: any) {
+    return { data: null, error: { message: err.message || "Social sign in failed" } };
+  }
+};
+
+export const signIn: SignInFn = Object.assign(baseSignIn, {
+  email: signInEmail,
+  social: signInSocial,
 });
 
-export { authClient };
+const baseSignUp = async function (data: any) {
+  try {
+    const responseData = await apiClient.post("/auth/register-employer", data);
+    return { data: responseData, error: null };
+  } catch (err: any) {
+    return { data: null, error: { message: err.message || "Registration failed" } };
+  }
+};
 
-export const { signIn, signUp, signOut } = authClient;
+const signUpEmail = async (data: any) => {
+  return baseSignUp(data);
+};
+
+export const signUp: SignUpFn = Object.assign(baseSignUp, {
+  email: signUpEmail,
+});
+
+export async function signOut() {
+  return apiClient.post("/auth/logout");
+}
 
 /**
- * Session Hook
+ * Custom Session Hook connected to Express Backend (/auth/session)
  */
 export function useSession() {
-  const { data: session, isPending, error } = authClient.useSession();
+  const [sessionData, setSessionData] = useState<any>({
+    session: null,
+    user: null,
+    isPending: true,
+    error: null,
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    apiClient
+      .get("/auth/session")
+      .then((res) => {
+        if (isMounted) {
+          setSessionData({
+            session: res?.session || null,
+            user: res?.user || null,
+            isPending: false,
+            error: null,
+          });
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setSessionData({
+            session: null,
+            user: null,
+            isPending: false,
+            error: err,
+          });
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return {
-    session,
-    user: session?.user ?? null,
-    isPending,
-    error,
-    isAuthenticated: !isPending && !!session?.user,
+    session: sessionData.session,
+    user: sessionData.user,
+    isPending: sessionData.isPending,
+    error: sessionData.error,
+    isAuthenticated: !sessionData.isPending && !!sessionData.user,
   };
 }
 
@@ -39,7 +124,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 export const AuthProvider = SessionProvider;
 
 /**
- * Protected Route
+ * Protected Route Component
  */
 const SESSION_TIMEOUT_MS = 30000;
 
@@ -70,7 +155,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
         <p className="text-gray-600">Session check timed out.</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md"
+          className="px-4 py-2 bg-[#059669] text-white font-bold rounded-xl text-xs"
         >
           Retry
         </button>
@@ -81,7 +166,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#059669]" />
       </div>
     );
   }
@@ -110,7 +195,7 @@ export function LogoutButton({
     setIsLoading(true);
     try {
       await signOut();
-      router.push("/login");
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed:", error);
       setIsLoading(false);
@@ -123,7 +208,7 @@ export function LogoutButton({
       disabled={isLoading}
       className={
         className ||
-        "px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md disabled:opacity-50"
+        "px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-md disabled:opacity-50"
       }
     >
       {isLoading ? "Logging out..." : children}

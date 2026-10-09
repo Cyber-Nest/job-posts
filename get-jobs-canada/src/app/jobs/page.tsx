@@ -4,6 +4,7 @@ import { useState, useMemo, ReactNode } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
 import {
   Search,
   MapPin,
@@ -395,15 +396,12 @@ export default function JobsPage() {
     indigenous: false,
   });
   const [page, setPage] = useState(1);
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const { data: dbJobsResponse, isLoading } = useQuery({
     queryKey: ["jobs"],
     queryFn: async () => {
-      const res = await fetch("/api/jobs");
-      if (!res.ok) throw new Error("Failed to fetch jobs");
-      return res.json() as Promise<{ success: boolean; data: Job[] }>;
+      return apiClient.get("/jobs");
     },
   });
 
@@ -469,7 +467,7 @@ export default function JobsPage() {
   }, [dbJobs]);
 
   const filtered = useMemo(() => filterJobs(allJobs, filters), [allJobs, filters]);
-  const featured = useMemo(() => allJobs.filter((j) => j.featured), [allJobs]);
+  const featured = useMemo(() => allJobs.filter((j: { featured: any; }) => j.featured), [allJobs]);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -628,15 +626,15 @@ export default function JobsPage() {
             {[
               { value: `${allJobs.length}`, label: "Active Listings" },
               {
-                value: `${allJobs.filter((j) => j.featured || j.indigenousOwned).length || allJobs.length}`,
+                value: `${allJobs.filter((j: { featured: any; indigenousOwned: any; }) => j.featured || j.indigenousOwned).length || allJobs.length}`,
                 label: "Verified Employers",
               },
               {
-                value: `${allJobs.filter((j) => j.remote).length}`,
+                value: `${allJobs.filter((j: { remote: any; }) => j.remote).length}`,
                 label: "Remote Roles",
               },
               {
-                value: `${new Set(allJobs.map((j) => j.province)).size}`,
+                value: `${new Set(allJobs.map((j: { province: any; }) => j.province)).size}`,
                 label: "Provinces & Territories",
               },
             ].map(({ value, label }) => (
@@ -946,7 +944,7 @@ export default function JobsPage() {
                   animate="visible"
                   className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-5" : "flex flex-col gap-4"}
                 >
-                  {featured.slice(0, 4).map((job) => (
+                  {featured.slice(0, 4).map((job: Job) => (
                     <JobCard key={job._id} job={job} viewMode={viewMode} />
                   ))}
                 </motion.div>

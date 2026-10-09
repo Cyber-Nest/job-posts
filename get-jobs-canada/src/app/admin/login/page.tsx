@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ShieldCheck, Lock, Mail, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
+import { apiClient } from "@/lib/api-client";
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -21,17 +23,7 @@ export default function AdminLoginPage() {
       setLoading(true);
       setError("");
 
-      const res = await fetch("/api/admin/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed");
-      }
+      await apiClient.post("/admin/auth/login", { email, password });
 
       router.push("/admin/coupons");
     } catch (err: unknown) {

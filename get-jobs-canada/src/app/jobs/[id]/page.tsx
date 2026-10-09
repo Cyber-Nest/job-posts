@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
 import {
   MapPin,
   Clock,
@@ -515,12 +516,13 @@ export default function JobDetailPage() {
     queryKey: ["job", id],
     queryFn: async () => {
       if (!id) return null;
-      const res = await fetch(`/api/jobs/${id}`);
-      if (!res.ok) {
-        if (res.status === 404) return { success: false, data: null };
-        throw new Error("Failed to fetch job details");
+      try {
+        return await apiClient.get<{ success: boolean; data: JobDetail }>(
+          `/jobs/${id}`
+        );
+      } catch (err: any) {
+        return { success: false, data: null as any };
       }
-      return res.json() as Promise<{ success: boolean; data: JobDetail }>;
     },
     enabled: !!id,
   });
@@ -532,11 +534,14 @@ export default function JobDetailPage() {
     queryKey: ["related-jobs", job?.category, job?._id],
     queryFn: async () => {
       if (!job?.category) return { data: [] };
-      const res = await fetch(
-        `/api/jobs?category=${encodeURIComponent(job.category)}&limit=4`
-      );
-      if (!res.ok) return { data: [] };
-      return res.json() as Promise<{ success: boolean; data: JobDetail[] }>;
+      try {
+        return await apiClient.get<{ success: boolean; data: JobDetail[] }>(
+          "/jobs",
+          { params: { category: job.category, limit: 4 } }
+        );
+      } catch (err) {
+        return { data: [] };
+      }
     },
     enabled: !!job?.category,
   });

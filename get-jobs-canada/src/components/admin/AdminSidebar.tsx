@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { apiClient } from "@/lib/api-client";
 import {
   Ticket,
   LogOut,
@@ -72,17 +73,17 @@ export default function AdminSidebar({
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/coupons/stats")
-      .then((r) => r.json())
+    apiClient
+      .get("/admin/coupons/stats")
       .then((d) => {
         if (d.success && d.stats) {
           const total = d.stats.reduce(
             (sum: number, s: { total: number }) => sum + s.total,
-            0,
+            0
           );
           const used = d.stats.reduce(
             (sum: number, s: { used: number }) => sum + s.used,
-            0,
+            0
           );
           setTotalCoupons(total);
           setUsedCoupons(used);

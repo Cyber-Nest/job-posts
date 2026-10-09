@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, use } from "react";
 import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
 import {
   Briefcase,
   MapPin,
@@ -44,8 +45,7 @@ export default function AdminEmployerJobsPage({ params }: { params: Promise<{ id
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/employers/${employerId}/jobs`);
-      const data = await res.json();
+      const data = await apiClient.get(`/admin/employers/${employerId}/jobs`);
       if (data.success) {
         setJobs(data.jobs);
         setEmployerName(data.employerName);
@@ -82,12 +82,7 @@ export default function AdminEmployerJobsPage({ params }: { params: Promise<{ id
 
     setUpdatingId(jobId);
     try {
-      const res = await fetch(`/api/admin/jobs/${jobId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postDate: newDate }),
-      });
-      const data = await res.json();
+      const data = await apiClient.put(`/admin/jobs/${jobId}`, { postDate: newDate });
       if (data.success) {
         toast.success("Job post date updated!");
         setEditingId(null);

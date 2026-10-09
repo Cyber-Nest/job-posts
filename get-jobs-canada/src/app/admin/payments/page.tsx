@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
 import {
   Search,
   Receipt,
@@ -75,8 +76,7 @@ export default function AdminPaymentsPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/payments`);
-      const data = await res.json();
+      const data = await apiClient.get("/admin/payments");
       if (data.success) {
         setTransactions(data.transactions);
         setStats(data.stats);

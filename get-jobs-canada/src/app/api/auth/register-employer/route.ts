@@ -8,6 +8,8 @@ import { Verification } from "@/lib/models/Verification";
 import { Employer } from "@/lib/models/Employer";
 import { EmployerPackage } from "@/lib/models/EmployerPackage";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     await connectDB();

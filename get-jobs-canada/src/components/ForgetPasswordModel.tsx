@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -112,28 +113,19 @@ function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
     setSuccess("");
 
     try {
-      const res = await fetch("/api/auth/forgot-password/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.toLowerCase().trim() }),
+      const data = await apiClient.post("/auth/forgot-password/send-otp", {
+        email: email.toLowerCase().trim(),
       });
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errMsg = data.error || "Failed to send OTP. Please try again.";
-        setError(errMsg);
-        toast.error(errMsg);
-        return;
-      }
 
       if (data._devOtp) setDevOtp(data._devOtp);
       setSuccess("Verification code sent to your email.");
       toast.success("Verification code sent to your email!");
       setOtpCountdown(60);
       setStep("otp");
-    } catch {
-      setError("Something went wrong. Please try again.");
-      toast.error("Something went wrong. Please try again.");
+    } catch (err: any) {
+      const errMsg = err.message || "Failed to send OTP. Please try again.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -146,28 +138,19 @@ function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
     setSuccess("");
 
     try {
-      const res = await fetch("/api/auth/forgot-password/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.toLowerCase().trim() }),
+      const data = await apiClient.post("/auth/forgot-password/send-otp", {
+        email: email.toLowerCase().trim(),
       });
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errMsg = data.error || "Failed to resend OTP.";
-        setError(errMsg);
-        toast.error(errMsg);
-        return;
-      }
 
       if (data._devOtp) setDevOtp(data._devOtp);
       setSuccess("New verification code sent.");
       toast.success("New verification code sent!");
       setOtpCountdown(60);
       setOtp("");
-    } catch {
-      setError("Failed to resend code.");
-      toast.error("Failed to resend code.");
+    } catch (err: any) {
+      const errMsg = err.message || "Failed to resend code.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -184,26 +167,18 @@ function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/forgot-password/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.toLowerCase().trim(), otp }),
+      await apiClient.post("/auth/forgot-password/verify-otp", {
+        email: email.toLowerCase().trim(),
+        otp,
       });
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errMsg = data.error || "Invalid or expired verification code.";
-        setError(errMsg);
-        toast.error(errMsg);
-        return;
-      }
 
       setSuccess("OTP verified! Set your new password.");
       toast.success("OTP verified! Set your new password.");
       setStep("reset");
-    } catch {
-      setError("Failed to verify OTP.");
-      toast.error("Failed to verify OTP.");
+    } catch (err: any) {
+      const errMsg = err.message || "Failed to verify OTP.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -230,32 +205,21 @@ function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/forgot-password/reset", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.toLowerCase().trim(),
-          otp,
-          newPassword,
-        }),
+      await apiClient.post("/auth/forgot-password/reset", {
+        email: email.toLowerCase().trim(),
+        otp,
+        newPassword,
       });
-      const data = await res.json();
 
-      if (!res.ok) {
-        const errMsg = data.error || "Failed to reset password.";
-        setError(errMsg);
-        toast.error(errMsg);
-        return;
-      }
-
-      setSuccess("Password reset successfully! You can now login.");
+      setSuccess("Password reset successfully! Redirecting to login...");
       toast.success("Password reset successfully!");
       setTimeout(() => {
         handleForcedReset();
-      }, 2000);
-    } catch {
-      setError("Failed to reset password.");
-      toast.error("Failed to reset password.");
+      }, 1500);
+    } catch (err: any) {
+      const errMsg = err.message || "Failed to reset password.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }

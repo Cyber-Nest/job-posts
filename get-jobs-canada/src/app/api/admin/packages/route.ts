@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db/mongoose";
 import { requireAdmin } from "@/lib/admin/adminAuth";
 import { Package } from "@/lib/models/Package";
 
+export const dynamic = "force-dynamic";
+
 // Fixed package names — cannot be changed
 const ALLOWED_NAMES = ["Starter", "Deluxe", "Ultimate", "Pro Plan", "Unlimited"];
 

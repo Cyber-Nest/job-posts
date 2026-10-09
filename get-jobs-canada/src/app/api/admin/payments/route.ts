@@ -5,6 +5,8 @@ import { EmployerPackageHistory } from "@/lib/models/EmployerPackageHistory";
 import { Employer } from "@/lib/models/Employer";
 import mongoose from "mongoose";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const admin = await requireAdmin(request);

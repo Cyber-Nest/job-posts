@@ -4,6 +4,8 @@ import { Job } from "@/lib/models/Job";
 import { Employer } from "@/lib/models/Employer";
 import { getAuth } from "@/lib/auth/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

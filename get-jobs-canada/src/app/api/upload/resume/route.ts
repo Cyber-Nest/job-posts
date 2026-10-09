@@ -4,6 +4,8 @@ import path from "node:path";
 import cloudinary from "@/lib/cloudinary";
 import { getAuth } from "@/lib/auth/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     // Auth

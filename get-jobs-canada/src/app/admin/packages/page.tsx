@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
 import {
   Package,
   Star,
@@ -127,24 +128,18 @@ function PackageCard({
 
     setSaving(true);
     try {
-      const res = await fetch("/api/admin/packages", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: pkg.name,
-          originalPrice,
-          discountedPrice,
-          tagline: tagline.trim(),
-          badge: badge.trim(),
-          features: cleanedFeatures,
-          credits,
-          expiryDays,
-          unlimitedJobs,
-          active,
-        }),
+      const data = await apiClient.put("/admin/packages", {
+        name: pkg.name,
+        originalPrice,
+        discountedPrice,
+        tagline: tagline.trim(),
+        badge: badge.trim(),
+        features: cleanedFeatures,
+        credits,
+        expiryDays,
+        unlimitedJobs,
+        active,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Update failed.");
       toast.success(`${pkg.name} package updated!`);
       setFeatures(cleanedFeatures);
       setEditing(false);
@@ -504,10 +499,7 @@ export default function AdminPackagesPage() {
   const handleSeedPackages = async () => {
     setSeeding(true);
     try {
-      const res = await fetch("/api/admin/packages/seed", {
-        method: "POST",
-      });
-      const data = await res.json();
+      const data = await apiClient.post("/admin/packages/seed");
       if (data.success) {
         toast.success("Default packages seeded successfully!");
         fetchPackages();
@@ -524,9 +516,8 @@ export default function AdminPackagesPage() {
   const fetchPackages = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/packages");
-      const data = await res.json();
-      if (data.success) setPackages(data.packages);
+      const data = await apiClient.get("/admin/packages");
+      if (data.success) setPackages(data.data || data.packages);
       else toast.error("Failed to load packages.");
     } catch {
       toast.error("Network error loading packages.");

@@ -15,6 +15,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -80,11 +81,7 @@ export default function AdminProfileModal({
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/auth/credentials");
-      if (!res.ok) {
-        throw new Error("Failed to load admin details.");
-      }
-      const data = await res.json();
+      const data = await apiClient.get("/admin/auth/credentials");
       if (data.success) {
         setEmail(data.email);
         setPassword(data.password);
@@ -142,19 +139,7 @@ export default function AdminProfileModal({
     setSuccess("");
 
     try {
-      const res = await fetch("/api/admin/auth/change-request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errMsg = data.error || "Failed to send verification code.";
-        setError(errMsg);
-        toast.error(errMsg);
-        return;
-      }
+      const data = await apiClient.post("/admin/auth/change-request", payload);
 
       if (data._devOtp) {
         setDevOtp(data._devOtp);
@@ -164,9 +149,10 @@ export default function AdminProfileModal({
       setOtpCountdown(60);
       setStep("otp");
       setOtp("");
-    } catch {
-      setError("Failed to process request. Please try again.");
-      toast.error("Failed to process request.");
+    } catch (err: any) {
+      const errMsg = err.message || "Failed to process request. Please try again.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -188,19 +174,7 @@ export default function AdminProfileModal({
     setSuccess("");
 
     try {
-      const res = await fetch("/api/admin/auth/change-request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errMsg = data.error || "Failed to resend code.";
-        setError(errMsg);
-        toast.error(errMsg);
-        return;
-      }
+      const data = await apiClient.post("/admin/auth/change-request", payload);
 
       if (data._devOtp) {
         setDevOtp(data._devOtp);
@@ -209,9 +183,10 @@ export default function AdminProfileModal({
       toast.success("New verification code sent!");
       setOtpCountdown(60);
       setOtp("");
-    } catch {
-      setError("Failed to resend code.");
-      toast.error("Failed to resend code.");
+    } catch (err: any) {
+      const errMsg = err.message || "Failed to resend code.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -239,14 +214,9 @@ export default function AdminProfileModal({
     setSuccess("");
 
     try {
-      const res = await fetch("/api/admin/auth/change-confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
+      const data = await apiClient.post("/admin/auth/change-confirm", payload);
 
-      if (!res.ok) {
+      if (data?.error) {
         const errMsg = data.error || "Verification failed. Please try again.";
         setError(errMsg);
         toast.error(errMsg);

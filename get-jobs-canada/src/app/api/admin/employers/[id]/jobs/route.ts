@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/admin/adminAuth";
 import { Job } from "@/lib/models/Job";
 import { Employer } from "@/lib/models/Employer";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

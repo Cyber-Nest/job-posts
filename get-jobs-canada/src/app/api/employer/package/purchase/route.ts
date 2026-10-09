@@ -10,6 +10,8 @@ import { EmployerPackage } from "@/lib/models/EmployerPackage";
 
 import { EmployerPackageHistory } from "@/lib/models/EmployerPackageHistory";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     await connectDB();

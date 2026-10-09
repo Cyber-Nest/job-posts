@@ -14,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/lib/auth/auth-client";
 
+import { apiClient } from "@/lib/api-client";
+
 function SuccessPageContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -33,21 +35,7 @@ function SuccessPageContent() {
 
     const verifyPayment = async () => {
       try {
-        const response = await fetch("/api/stripe/verify-payment", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sessionId }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to verify payment");
-        }
-
-        // Verification successful
+        await apiClient.post("/payments/verify-payment", { sessionId });
         setLoading(false);
       } catch (err: any) {
         console.error("Verification Page Error:", err);

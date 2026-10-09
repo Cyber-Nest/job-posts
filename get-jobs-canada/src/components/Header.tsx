@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSession, signOut } from "@/lib/auth/auth-client";
+import { apiClient } from "@/lib/api-client";
 
 const navLinks = [
   { label: "Find jobs", href: "/jobs", icon: Rocket },
@@ -65,8 +66,8 @@ export default function Header() {
   // CHECK EMPLOYER
   useEffect(() => {
     if (isAuthenticated && user?.email) {
-      fetch(`/api/employer/check?email=${user.email}`)
-        .then((res) => res.json())
+      apiClient
+        .get("/employer/check", { params: { email: user.email } })
         .then((data) => setIsEmployer(data.isEmployer))
         .catch(() => setIsEmployer(false));
     }
@@ -77,8 +78,7 @@ export default function Header() {
     const fetchPackage = async () => {
       try {
         setPackageLoading(true);
-        const res = await fetch("/api/employer/package");
-        const data = await res.json();
+        const data = await apiClient.get("/employer/package");
         if (data.success) {
           setPackageData(data.package);
         }

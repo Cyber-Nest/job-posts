@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { CheckCircle, AlertCircle, Upload, X, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/lib/auth/auth-client';
+import { apiClient } from '@/lib/api-client';
 
 interface ApplyModalProps {
   jobId: string;
@@ -45,10 +46,8 @@ export default function ApplyModal({ jobId, jobTitle, company, onClose }: ApplyM
     try {
       const formData = new FormData();
       formData.append('file', resumeFile);
-      const res = await fetch('/api/upload/resume', { method: 'POST', body: formData });
-      const data = await res.json() as { url?: string; error?: string };
-      if (!res.ok) throw new Error(data.error || 'Upload failed.');
-      return data.url ?? null;
+      const data = await apiClient.post('/upload/resume', formData);
+      return data.url ?? data.data?.url ?? null;
     } finally {
       setUploading(false);
     }
@@ -63,16 +62,7 @@ export default function ApplyModal({ jobId, jobTitle, company, onClose }: ApplyM
       if (resumeFile) {
         resumeUrl = await uploadResume();
       }
-      const res = await fetch('/api/applications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId, coverLetter: coverLetter.trim() || null, resumeUrl }),
-      });
-      const data = await res.json() as { error?: string; success?: boolean };
-      if (!res.ok) {
-        setServerError(data.error || 'Failed to submit application. Please try again.');
-        return;
-      }
+      await apiClient.post('/applications', { jobId, coverLetter: coverLetter.trim() || null, resumeUrl });
       setSubmitted(true);
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Network error. Please try again.');
