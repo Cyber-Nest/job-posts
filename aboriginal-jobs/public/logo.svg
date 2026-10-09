@@ -1,0 +1,44 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="64"
+  height="64"
+  viewBox="0 0 64 64"
+  fill="none"
+>
+  <!-- Background -->
+  <rect width="64" height="64" rx="18" fill="#C8782A"/>
+
+  <!-- Letter A -->
+  <path
+    d="M20 46L32 18L44 46"
+    stroke="white"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- A Crossbar -->
+  <path
+    d="M25 36H39"
+    stroke="white"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+
+  <!-- Search Circle -->
+  <circle
+    cx="43"
+    cy="43"
+    r="7"
+    stroke="white"
+    stroke-width="3"
+  />
+
+  <!-- Search Handle -->
+  <path
+    d="M48 48L54 54"
+    stroke="white"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+</svg>
