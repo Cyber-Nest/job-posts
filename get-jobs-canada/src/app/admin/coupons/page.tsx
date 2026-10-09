@@ -303,7 +303,7 @@ export default function CouponManagementPage() {
       {/* ─── Package Cards ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {PACKAGES.map((pkg) => {
-          const stat = stats.find((s) => s.packageName === pkg.name);
+          const stat = Array.isArray(stats) ? stats.find((s) => s.packageName === pkg.name) : undefined;
           const isSelected = selectedPackage === pkg.name;
           const usedPct = stat
             ? Math.round((stat.used / (stat.total || 100)) * 100)

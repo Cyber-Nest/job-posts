@@ -47,8 +47,8 @@ export default function AdminEmployerJobsPage({ params }: { params: Promise<{ id
     try {
       const data = await apiClient.get(`/admin/employers/${employerId}/jobs`);
       if (data.success) {
-        setJobs(data.jobs);
-        setEmployerName(data.employerName);
+        setJobs(data.jobs || []);
+        setEmployerName(data.employerName || data.employer?.orgName || "Employer");
         
         const initialDates: Record<string, string> = {};
         data.jobs.forEach((job: JobData) => {

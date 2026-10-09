@@ -77,12 +77,15 @@ export default function AdminSidebar({
       .get("/admin/coupons/stats")
       .then((d) => {
         if (d.success && d.stats) {
-          const total = d.stats.reduce(
-            (sum: number, s: { total: number }) => sum + s.total,
+          const statsArray: Array<{ total: number; used: number }> = Array.isArray(d.stats)
+            ? d.stats
+            : Object.values(d.stats);
+          const total = statsArray.reduce(
+            (sum: number, s: { total: number }) => sum + (s.total || 0),
             0
           );
-          const used = d.stats.reduce(
-            (sum: number, s: { used: number }) => sum + s.used,
+          const used = statsArray.reduce(
+            (sum: number, s: { used: number }) => sum + (s.used || 0),
             0
           );
           setTotalCoupons(total);
