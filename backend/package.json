@@ -1,21 +1,27 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Standalone Modular Express Backend for Get Jobs Canada",
   "dependencies": {
     "cloudinary": "^2.11.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.6",
     "express": "^5.2.1",
     "mongoose": "^9.11.1",
+    "multer": "^1.4.5-lts.1",
     "nodemailer": "^10.0.16",
-    "stripe": "^23.0.0"
+    "nodemon": "^3.1.14",
+    "stripe": "^23.0.0",
+    "winston": "^3.19.0"
   }
 }
