@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core Green Theme Colors */
+    --background: 0 0% 100%;
+    --foreground: 160 30% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 160 30% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 30% 12%;
+    
+    /* Primary Emerald Green */
+    --primary: 160 84% 39%; /* #059669 */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 160 64% 15%; /* #064E3B */
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 152 60% 96%; /* #ECFDF5 */
+    --muted-foreground: 160 15% 40%;
+    
+    --accent: 160 70% 40%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 152 30% 92%;
+    --input: 152 30% 92%;
+    --ring: 160 84% 39%;
+
+    /* Typography */
+    --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-heading: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: "Plus Jakarta Sans", "Inter", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Monaco, monospace;
+
+    /* Border Radius */
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading) !important;
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  .animate-in {
+    animation-duration: 0.2s;
+    animation-fill-mode: both;
+  }
+
+  .fade-in {
+    animation-name: fadeIn;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+/* Unless told otherwise, keep it for smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 6px;  
+  height: 15px; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #059669; 
+}

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <defs>
+    <linearGradient id="gjcBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Squircle Container -->
+  <rect width="512" height="512" rx="128" fill="url(#gjcBg)" />
+  
+  <!-- Subtle Inner Border Frame -->
+  <rect x="18" y="18" width="476" height="476" rx="110" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="8" fill="none" />
+
+  <!-- Ultra-Bold Heavyweight "G" Letterform (86px Stroke) -->
+  <path
+    d="M 368 144 C 304 80 208 80 144 144 C 80 208 80 304 144 368 C 208 432 304 432 368 368 C 404 332 424 284 424 236 L 248 236"
+    stroke="#FFFFFF"
+    stroke-width="86"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+    fill="none"
+  />
+</svg>
