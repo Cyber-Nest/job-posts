@@ -91,6 +91,17 @@ export async function createJobHandler(req, res, next) {
 
 export async function updateJobHandler(req, res, next) {
   try {
+    let targetJob = null;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      targetJob = await Job.findById(req.params.id);
+    }
+    if (!targetJob) {
+      targetJob = await Job.findOne({ jobId: req.params.id });
+    }
+    if (!targetJob) {
+      return res.status(404).json({ success: false, error: "Job not found." });
+    }
+
     const rawSalaryPeriod = req.body.salaryType || req.body.salaryPeriod;
     if (rawSalaryPeriod) {
       let normalizedSalaryType = String(rawSalaryPeriod).toLowerCase().trim();
@@ -98,19 +109,114 @@ export async function updateJobHandler(req, res, next) {
       else if (normalizedSalaryType === "weekly") normalizedSalaryType = "week";
       else if (normalizedSalaryType === "monthly") normalizedSalaryType = "month";
       else if (normalizedSalaryType === "annual" || normalizedSalaryType === "annually") normalizedSalaryType = "year";
+      else if (!["hour", "week", "month", "year"].includes(normalizedSalaryType)) {
+        normalizedSalaryType = "hour";
+      }
       req.body.salaryType = normalizedSalaryType;
     }
-    if (req.body.startDate !== undefined) {
-      req.body.startDate = req.body.startDate ? String(req.body.startDate).trim() : "";
+
+    if (req.body.city || req.body.province) {
+      const city = (req.body.city || targetJob.city || "").trim();
+      const province = (req.body.province || targetJob.province || "").trim();
+      req.body.location = [city, province].filter(Boolean).join(", ");
     }
-    if (req.body.website !== undefined) {
-      req.body.website = req.body.website ? String(req.body.website).trim() : "";
+
+    if (req.body.company || req.body.companyName) {
+      req.body.company = (req.body.company || req.body.companyName).trim();
     }
-    const updatedJob = await Job.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedJob) {
-      return res.status(404).json({ success: false, error: "Job not found." });
+    if (req.body.contactName) {
+      req.body.contactName = String(req.body.contactName).trim();
     }
-    return res.status(200).json({ success: true, data: updatedJob, job: updatedJob, message: "Job updated successfully." });
+
+    const cleanFields = [
+      "startDate",
+      "website",
+      "nocCode",
+      "experience",
+      "positionType",
+      "education",
+      "travel",
+      "vacation",
+      "contactType",
+    ];
+    cleanFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        req.body[field] = req.body[field] ? String(req.body[field]).trim() : "";
+      }
+    });
+
+    if (req.body.vacancies !== undefined) {
+      req.body.vacancies = Number(req.body.vacancies) || 1;
+    }
+    if (req.body.indigenousOwned !== undefined || req.body.indigenous !== undefined) {
+      req.body.indigenousOwned = Boolean(req.body.indigenousOwned || req.body.indigenous);
+      req.body.indigenousPreference = Boolean(req.body.indigenousOwned || req.body.indigenous);
+    }
+    if (req.body.remote !== undefined) {
+      req.body.remote = Boolean(req.body.remote);
+    }
+
+    const runDaysVal = req.body.runDays || req.body.adDurationDays;
+    if (runDaysVal) {
+      req.body.runDays = String(runDaysVal);
+      const daysToAdd = parseInt(runDaysVal) || 30;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + daysToAdd);
+      req.body.expiresAt = expiresAt;
+    }
+
+    // Format apply methods from either array or toggle fields
+    let formattedApplyMethods = [];
+    if (Array.isArray(req.body.applyMethods) && req.body.applyMethods.length > 0) {
+      formattedApplyMethods = req.body.applyMethods.map((method) => {
+        const formatted = { method: method.method };
+        if (method.email) formatted.email = method.email.toLowerCase().trim();
+        if (method.phone) formatted.phone = method.phone.trim();
+        if (method.mailAddress) formatted.mailAddress = method.mailAddress.trim();
+        if (method.inPersonAddress) formatted.inPersonAddress = method.inPersonAddress.trim();
+        if (method.inPersonTiming) formatted.inPersonTiming = method.inPersonTiming.trim();
+        return formatted;
+      });
+      req.body.applyMethods = formattedApplyMethods;
+    } else if (
+      req.body.byEmail !== undefined ||
+      req.body.byPhone !== undefined ||
+      req.body.byMail !== undefined ||
+      req.body.inPerson !== undefined
+    ) {
+      if (req.body.byEmail && req.body.applicationEmail) {
+        formattedApplyMethods.push({ method: "email", email: req.body.applicationEmail.toLowerCase().trim() });
+      }
+      if (req.body.byPhone && req.body.phone) {
+        formattedApplyMethods.push({ method: "phone", phone: req.body.phone.trim() });
+      }
+      if (req.body.byMail && req.body.mailingAddress) {
+        formattedApplyMethods.push({ method: "mail", mailAddress: req.body.mailingAddress.trim() });
+      }
+      if (req.body.inPerson && req.body.inPersonAddress) {
+        const timing = [req.body.inPersonFromTime, req.body.inPersonToTime].filter(Boolean).join(" - ");
+        formattedApplyMethods.push({
+          method: "inPerson",
+          inPersonAddress: req.body.inPersonAddress.trim(),
+          inPersonTiming: timing || undefined,
+        });
+      }
+      if (formattedApplyMethods.length > 0) {
+        req.body.applyMethods = formattedApplyMethods;
+      }
+    }
+
+    const updatedJob = await Job.findByIdAndUpdate(targetJob._id, req.body, { new: true });
+    return res.status(200).json({
+      success: true,
+      data: updatedJob,
+      job: {
+        ...updatedJob.toObject(),
+        id: updatedJob._id,
+        jobUniqueId: updatedJob.jobId,
+      },
+      message: "Job updated successfully.",
+    });
   } catch (error) {
     next(error);
   }

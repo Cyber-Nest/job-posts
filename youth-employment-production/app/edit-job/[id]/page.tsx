@@ -3,26 +3,29 @@
 import { useEffect, useState } from "react";
 import { useParams } from "@/router";
 import PostAJobPage from "@/views/post-a-job";
+import { apiClient } from "@/lib/api-client";
 
 export default function EditJobPage() {
   const { id } = useParams();
-  const [jobData, setJobData] = useState(null);
+  const [jobData, setJobData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`/api/jobs/${id}`, { credentials: "include" })
-      .then((res) => res.json())
+    if (!id) return;
+    apiClient
+      .get(`/jobs/${id}`)
       .then((data) => {
-        if (data.error) {
-          setError(data.error);
+        const job = data?.data || data?.job;
+        if (job) {
+          setJobData(job);
         } else {
-          setJobData(data.job);
+          setError("Job not found.");
         }
         setLoading(false);
       })
-      .catch(() => {
-        setError("Failed to load job data");
+      .catch((err: any) => {
+        setError(err?.message || "Failed to load job data");
         setLoading(false);
       });
   }, [id]);
