@@ -27,6 +27,7 @@ import JobPostingPreview, {
   type JobPostingData,
 } from "@/components/JobPostingPreview";
 import { useSession } from "@/lib/auth/auth-client";
+import { apiClient } from "@/lib/api-client";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -462,8 +463,8 @@ function PostAJobContent() {
   useEffect(() => {
     if (isEditMode && jobIdParam) {
       setLoadingData(true);
-      fetch(`/api/jobs/${jobIdParam}`)
-        .then((res) => res.json())
+      apiClient
+        .get(`/jobs/${jobIdParam}`)
         .then((data) => {
           const job = data.data;
           if (job) {
@@ -743,8 +744,7 @@ function PostAJobContent() {
     setLoading(true);
 
     try {
-      const url = isEditMode ? `/api/jobs/${jobIdParam}` : "/api/jobs";
-      const method = isEditMode ? "PUT" : "POST";
+      const endpoint = isEditMode ? `/jobs/${jobIdParam}` : "/jobs";
 
       const requestBody: any = {
         title: title.trim(),
@@ -774,21 +774,10 @@ function PostAJobContent() {
         requestBody.postDate = new Date(postDate).toISOString();
       }
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errMsg =
-          data.error ||
-          `Failed to ${isEditMode ? "update" : "submit"} job posting.`;
-        setServerError(errMsg);
-        toast.error(errMsg);
-        return;
+      if (isEditMode) {
+        await apiClient.put(endpoint, requestBody);
+      } else {
+        await apiClient.post(endpoint, requestBody);
       }
 
       toast.success(

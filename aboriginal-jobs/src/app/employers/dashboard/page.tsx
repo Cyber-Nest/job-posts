@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { apiClient } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
@@ -1026,11 +1027,7 @@ export default function EmployerDashboard() {
   const { data: packageResponse, isLoading: packageLoading } = useQuery({
     queryKey: ["employer-package", session?.user?.id],
     queryFn: async () => {
-      const res = await fetch("/api/employer/package", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch package");
-      return res.json();
+      return apiClient.get("/employer/package");
     },
     enabled: !!session?.user,
   });
@@ -1044,17 +1041,14 @@ export default function EmployerDashboard() {
       session?.user?.id,
     ],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (searchQuery) params.append("search", searchQuery);
-      params.append("page", currentPage.toString());
-      params.append("limit", itemsPerPage.toString());
+      const params: Record<string, string> = {
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+      };
+      if (statusFilter !== "all") params.status = statusFilter;
+      if (searchQuery) params.search = searchQuery;
 
-      const res = await fetch(`/api/employer/jobs?${params.toString()}`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch jobs");
-      return res.json();
+      return apiClient.get("/employer/jobs", { params });
     },
     enabled: !!session?.user,
   });
@@ -1062,23 +1056,14 @@ export default function EmployerDashboard() {
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ["employer-stats", session?.user?.id],
     queryFn: async () => {
-      const res = await fetch("/api/employer/stats", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch stats");
-      return res.json();
+      return apiClient.get("/employer/stats");
     },
     enabled: !!session?.user,
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (jobId: string) => {
-      const res = await fetch(`/api/jobs/${jobId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to delete job");
-      return res.json();
+      return apiClient.delete(`/jobs/${jobId}`);
     },
     onSuccess: () => {
       toast.success("Job deleted successfully");
@@ -1099,14 +1084,7 @@ export default function EmployerDashboard() {
       jobId: string;
       status: string;
     }) => {
-      const res = await fetch(`/api/jobs/${jobId}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ status }),
-      });
-      if (!res.ok) throw new Error("Failed to update status");
-      return res.json();
+      return apiClient.put(`/jobs/${jobId}/status`, { status });
     },
     onSuccess: () => {
       toast.success("Job status updated");

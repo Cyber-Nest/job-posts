@@ -188,9 +188,12 @@ export async function adminChangeConfirmHandler(req, res, next) {
 
 export async function getAdminEmployersHandler(req, res, next) {
   try {
-    const { search = "", page = 1, limit = 20 } = req.query;
+    const { search = "", site, page = 1, limit = 20 } = req.query;
 
     const filter = {};
+    if (site && site !== "all") {
+      filter.site = site;
+    }
     if (search) {
       filter.$or = [
         { orgName: { $regex: search, $options: "i" } },
@@ -232,6 +235,7 @@ export async function getAdminEmployersHandler(req, res, next) {
       _id: emp._id,
       authUserId: emp.authUserId,
       orgName: emp.orgName,
+      site: emp.site || "getjobscanada",
       contactName: emp.contactName,
       email: emp.email,
       phone: emp.phone,
@@ -283,15 +287,19 @@ export async function getAdminEmployerJobsHandler(req, res, next) {
 
 export async function getAdminJobsHandler(req, res, next) {
   try {
-    const { status, search, page = 1, limit = 20 } = req.query;
+    const { status, search, site, page = 1, limit = 20 } = req.query;
 
     const filter = {};
+    if (site && site !== "all") {
+      filter.site = site;
+    }
     if (status && status !== "all") {
       filter.status = status;
     }
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
+        { company: { $regex: search, $options: "i" } },
         { companyName: { $regex: search, $options: "i" } },
         { city: { $regex: search, $options: "i" } },
         { province: { $regex: search, $options: "i" } },

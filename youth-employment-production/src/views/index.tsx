@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { apiClient } from "@/lib/api-client";
 
 // ─── Animation Variants ───────────────────────────────────────────────────────
 
@@ -304,8 +305,8 @@ export default function HomePage() {
 
   useEffect(() => {
     let active = true;
-    fetch(`/api/packages?t=${Date.now()}`, { cache: "no-store" })
-      .then((res) => res.json())
+    apiClient
+      .get("/packages")
       .then((data) => {
         if (active && data.success && data.packages && data.packages.length > 0) {
           const mapped = data.packages.map((pkg: any) => ({
@@ -328,13 +329,9 @@ export default function HomePage() {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/jobs");
-        const data = await res.json();
-        if (!res.ok) {
-          if (mounted) setJobs([]);
-        } else {
-          if (mounted) setJobs(Array.isArray(data.jobs) ? data.jobs : []);
-        }
+        const data = await apiClient.get("/jobs");
+        const list = data.data || data.jobs || [];
+        if (mounted) setJobs(Array.isArray(list) ? list : []);
       } catch (err) {
         if (mounted) setJobs([]);
       } finally {
@@ -355,19 +352,12 @@ export default function HomePage() {
     setShowResults(true);
 
     try {
-      const params = new URLSearchParams();
-      if (heroSearch.trim()) params.append("search", heroSearch.trim());
-      if (heroLocation.trim()) params.append("province", heroLocation.trim());
-      params.append("limit", "8");
+      const params: Record<string, string> = { limit: "8" };
+      if (heroSearch.trim()) params.search = heroSearch.trim();
+      if (heroLocation.trim()) params.province = heroLocation.trim();
 
-      const res = await fetch(`/api/jobs?${params.toString()}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to search jobs");
-      }
-
-      const allJobs = Array.isArray(data.jobs) ? data.jobs : [];
+      const data = await apiClient.get("/jobs", { params });
+      const allJobs = data.data || data.jobs || [];
 
       const keyword = heroSearch.toLowerCase().trim();
       const locationKeyword = heroLocation.toLowerCase().trim();

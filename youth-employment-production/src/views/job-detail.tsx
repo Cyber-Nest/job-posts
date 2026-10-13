@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Job } from "@/lib/jobs-data";
+import { apiClient } from "@/lib/api-client";
 
 /* ── Animations ─────────────────────────────────────────────────────── */
 const fadeUp = {
@@ -92,14 +93,9 @@ export default function JobDetailPage() {
       setLoading(true);
       setFetchError("");
       try {
-        const response = await fetch(
-          `/api/jobs?id=${encodeURIComponent(jobId!)}`,
-        );
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data?.error || "Job not found.");
-        }
-        setJob(data.job);
+        const data = await apiClient.get(`/jobs/${jobId}`);
+        const jobData = data.data || data.job;
+        setJob(jobData);
       } catch (error) {
         setFetchError(
           error instanceof Error ? error.message : "Unable to load job.",

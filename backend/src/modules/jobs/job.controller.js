@@ -3,7 +3,8 @@ import { Job } from "./job.model.js";
 
 export async function getJobsHandler(req, res, next) {
   try {
-    const result = await getAllJobs(req.query);
+    const queryParams = { ...req.query };
+    const result = await getAllJobs(queryParams);
     return res.status(200).json({
       success: true,
       data: result.jobs,
@@ -29,7 +30,8 @@ export async function getJobByIdHandler(req, res, next) {
 export async function createJobHandler(req, res, next) {
   try {
     const userId = req.user.id;
-    const createdJob = await createJob(userId, req.body);
+    const siteHeader = req.headers["x-site-id"];
+    const createdJob = await createJob(userId, req.body, siteHeader);
     return res.status(201).json({
       success: true,
       jobId: createdJob._id,

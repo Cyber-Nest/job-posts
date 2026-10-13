@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { apiClient } from "@/lib/api-client";
 
 /* ── Constants ──────────────────────────────────────────────────────── */
 const PAGE_SIZE = 8;
@@ -358,15 +359,9 @@ export default function JobsPage() {
       setLoading(true);
       setFetchError("");
       try {
-        const response = await fetch("/api/jobs");
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data?.error || "Unable to load jobs.");
-        }
-        if (!Array.isArray(data.jobs)) {
-          throw new Error("Unexpected jobs response from server.");
-        }
-        setJobs(data.jobs);
+        const data = await apiClient.get("/jobs");
+        const jobsList = data.data || data.jobs || [];
+        setJobs(jobsList);
       } catch (error) {
         setFetchError(
           error instanceof Error ? error.message : "Unable to load jobs.",

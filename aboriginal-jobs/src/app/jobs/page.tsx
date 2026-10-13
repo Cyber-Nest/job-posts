@@ -4,6 +4,7 @@ import { useState, useMemo, ReactNode } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
 import {
   Search,
   MapPin,
@@ -409,9 +410,7 @@ export default function JobsPage() {
   const { data: dbJobsResponse, isLoading } = useQuery({
     queryKey: ["jobs"],
     queryFn: async () => {
-      const res = await fetch("/api/jobs");
-      if (!res.ok) throw new Error("Failed to fetch jobs");
-      return res.json() as Promise<{ success: boolean; data: Job[] }>;
+      return apiClient.get<{ success: boolean; data: Job[] }>("/jobs");
     },
   });
 

@@ -5,6 +5,7 @@ import { Helmet } from "@dr.pogodin/react-helmet";
 import { Link } from "@/router";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
 import {
   Eye,
   Edit,
@@ -132,6 +133,7 @@ interface PackageData {
 interface Job {
   jobType: string;
   id: string;
+  _id?: string;
   jobUniqueId: string;
   title: string;
   company: string;
@@ -193,10 +195,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch("/api/auth/me", {
-          credentials: "include",
-        });
-        const data = await response.json();
+        const data = await apiClient.get("/auth/session");
         if (data.user) {
           setUser(data.user);
         } else {
@@ -215,12 +214,9 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchPackage = async () => {
       try {
-        const response = await fetch("/api/employer/package", {
-          credentials: "include",
-        });
-        const data = await response.json();
-        if (data.success) {
-          setPackageData(data.package);
+        const data = await apiClient.get("/employer/package");
+        if (data.package || data.data) {
+          setPackageData(data.package || data.data);
         }
       } catch (error) {
         console.error("Failed to fetch package:", error);
@@ -235,12 +231,9 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch("/api/jobs/my-jobs", {
-          credentials: "include",
-        });
-        const data = await response.json();
-        if (data.success) {
-          setJobs(data.jobs || []);
+        const data = await apiClient.get("/employer/jobs");
+        if (data.jobs || data.data) {
+          setJobs(data.jobs || data.data || []);
         }
       } catch (err) {
         console.error("Failed to fetch jobs:", err);
@@ -257,21 +250,11 @@ export default function DashboardPage() {
     setDeletingJobId(jobId);
 
     try {
-      const response = await fetch(`/api/jobs/${jobId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setJobs((prev) => prev.filter((job) => job.id !== jobId));
-        toast.success("Job posting deleted successfully.");
-      } else {
-        toast.error(data.error || "Failed to delete job");
-      }
-    } catch {
-      toast.error("Network error. Please try again.");
+      await apiClient.delete(`/jobs/${jobId}`);
+      setJobs((prev) => prev.filter((job) => job._id !== jobId && job.id !== jobId));
+      toast.success("Job posting deleted successfully.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete job");
     } finally {
       setDeletingJobId(null);
     }
@@ -283,26 +266,11 @@ export default function DashboardPage() {
 
       const nextStatus = currentStatus === "active" ? "closed" : "active";
 
-      const res = await fetch(`/api/jobs/${jobId}/status`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: nextStatus,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to update job");
-      }
+      await apiClient.put(`/jobs/${jobId}/status`, { status: nextStatus });
 
       setJobs((prev) =>
         prev.map((job) =>
-          job.id === jobId
+          job.id === jobId || job._id === jobId
             ? {
                 ...job,
                 status: nextStatus,
@@ -311,9 +279,9 @@ export default function DashboardPage() {
         ),
       );
       toast.success(`Job marked as ${nextStatus}.`);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to update job status");
+      toast.error(error?.message || "Failed to update job status");
     } finally {
       setStatusUpdatingId(null);
     }

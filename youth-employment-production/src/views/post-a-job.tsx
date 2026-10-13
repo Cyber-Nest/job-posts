@@ -21,6 +21,7 @@ import RichTextEditor from "@/components/RichTextEditor";
 import JobPostingPreview, {
   type JobPostingData,
 } from "@/components/JobPostingPreview";
+import { apiClient } from "@/lib/api-client";
 
 /* ── Validation Functions ─────────────────────────────────────────────── */
 const validations = {
@@ -629,63 +630,49 @@ export default function PostAJobPage({
     setLoading(true);
 
     try {
-      const url = editMode ? `/api/jobs/${initialData?.id}` : "/api/jobs";
-      const method = editMode ? "PUT" : "POST";
+      const endpoint = editMode ? `/jobs/${initialData?.id}` : "/jobs";
 
-      const res = await fetch(url, {
-        method: method,
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          company,
-          city,
-          province,
-          employmentType,
-          salary: salary.replace(/,/g, ""),
-          salaryPeriod,
-          vacancies: vacancies ? Number(vacancies) : null,
-          adDurationDays,
-          category,
-          startDate: startDate.trim() || null,
-          positionType: positionType.trim() || null,
-          experience: experience.trim() || null,
-          education: education.trim() || null,
-          travel: travel.trim() || null,
-          vacation: vacation.trim() || null,
-          nocCode: nocCode.trim() || null,
-          contactName: contactName.trim() || null,
-          contactType: contactType.trim() || null,
-          companyName: companyName.trim() || null,
-          descriptionHtml: descHtml,
-          requirementsHtml: reqHtml,
-          indigenousOwned: indigenous,
-          website: website.trim() || null,
-          remote: remote,
-          howToApply: {
-            byEmail,
-            email: byEmail ? applicationEmail : null,
-            byMail,
-            mailingAddress: byMail ? mailingAddress : null,
-            byPhone,
-            phone: byPhone ? phone : null,
-            inPerson,
-            inPersonAddress: inPerson ? inPersonAddress : null,
-            inPersonFromTime: inPerson ? inPersonFromTime : null,
-            inPersonToTime: inPerson ? inPersonToTime : null,
-          },
-        }),
-      });
+      const payload = {
+        title,
+        company,
+        city,
+        province,
+        employmentType,
+        salary: salary.replace(/,/g, ""),
+        salaryPeriod,
+        vacancies: vacancies ? Number(vacancies) : null,
+        adDurationDays,
+        category,
+        startDate: startDate.trim() || null,
+        positionType: positionType.trim() || null,
+        experience: experience.trim() || null,
+        education: education.trim() || null,
+        travel: travel.trim() || null,
+        vacation: vacation.trim() || null,
+        nocCode: nocCode.trim() || null,
+        contactName: contactName.trim() || null,
+        contactType: contactType.trim() || null,
+        companyName: companyName.trim() || null,
+        descriptionHtml: descHtml,
+        requirementsHtml: reqHtml,
+        indigenousOwned: indigenous,
+        website: website.trim() || null,
+        remote: remote,
+        byEmail,
+        applicationEmail,
+        byMail,
+        mailingAddress,
+        byPhone,
+        phone,
+        inPerson,
+        inPersonAddress,
+        inPersonFromTime,
+        inPersonToTime,
+      };
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errMsg = data.error || "Failed to save job posting.";
-        setServerError(errMsg);
-        toast.error(errMsg);
-        setLoading(false);
-        return;
-      }
+      const data = editMode
+        ? await apiClient.put(endpoint, payload)
+        : await apiClient.post(endpoint, payload);
 
       if (editMode) {
         toast.success("Job posting updated successfully!");

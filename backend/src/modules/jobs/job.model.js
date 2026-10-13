@@ -40,6 +40,12 @@ const JobSchema = new Schema(
       ref: "Employer",
       required: true,
     },
+    site: {
+      type: String,
+      enum: ["getjobscanada", "aboriginal", "youthemployment"],
+      default: "getjobscanada",
+      index: true,
+    },
     jobId: {
       type: String,
       unique: true,

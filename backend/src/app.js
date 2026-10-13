@@ -18,10 +18,33 @@ import authRoutes from "./modules/auth/auth.routes.js";
 
 const app = express();
 
-// Middlewares
+// CORS Configuration for Multi-Tenant Frontends
+const allowedOrigins = [
+  env.CLIENT_URL,
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
+  "http://localhost:3003",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+  "http://127.0.0.1:3002",
+  "https://getjobscanada.ca",
+  "https://www.getjobscanada.ca",
+  "https://aboriginal-jobs.ca",
+  "https://www.aboriginal-jobs.ca",
+  "https://youthemployment.ca",
+  "https://www.youthemployment.ca",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: [env.CLIENT_URL, "http://localhost:3000"],
+    origin: (origin, callback) => {
+      // allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Allow all origins in dev mode or specify allowedOrigins
+    },
     credentials: true,
   })
 );

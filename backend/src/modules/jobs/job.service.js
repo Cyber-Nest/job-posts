@@ -4,7 +4,7 @@ import { EmployerPackage } from "../packages/employerPackage.model.js";
 import { generateJobId } from "../../utils/generateJobId.js";
 
 export async function getAllJobs(queryParams) {
-  const { category, province, employmentType, remote, search } = queryParams;
+  const { category, province, employmentType, remote, search, site } = queryParams;
   const limit = parseInt(queryParams.limit || "20");
   const page = parseInt(queryParams.page || "1");
   const skip = (page - 1) * limit;
@@ -20,6 +20,10 @@ export async function getAllJobs(queryParams) {
       },
     ],
   };
+
+  if (site && site !== "all") {
+    query.site = site;
+  }
 
   if (category && category !== "all") {
     query.category = category;
@@ -72,13 +76,14 @@ export async function getAllJobs(queryParams) {
     return {
       _id: job._id,
       jobId: job.jobId || null,
+      site: job.site || "getjobscanada",
       title: job.title || "",
       company: job.company || "",
       city: job.city || "",
       province: job.province || "",
       location: job.location || [job.city, job.province].filter(Boolean).join(", "),
       salary: job.salary ? `${job.salary}` : "",
-      salaryType: job.salaryType || "hour",
+      salaryType: job.salaryType || job.salaryPeriod || "hour",
       employmentType: job.employmentType || "",
       category: job.category || "",
       nocCode: job.nocCode || "",
@@ -95,10 +100,11 @@ export async function getAllJobs(queryParams) {
       website: job.website || "",
       postDate: job.postDate || job.postedAt || job.createdAt || new Date(),
       remote: Boolean(job.remote),
-      indigenousOwned: Boolean(job.indigenousOwned),
-      indigenousPreference: Boolean(job.indigenousPreference),
+      indigenousOwned: Boolean(job.indigenousOwned || job.indigenous),
+      indigenousPreference: Boolean(job.indigenousPreference || job.indigenousOwned || job.indigenous),
       status: job.status || "active",
       vacancies: job.vacancies || 1,
+      applyMethods: job.applyMethods || [],
     };
   });
 
@@ -113,12 +119,15 @@ export async function getAllJobs(queryParams) {
   };
 }
 
-export async function createJob(userId, jobData) {
+export async function createJob(userId, jobData, siteFromHeader = null) {
+  const targetSite = siteFromHeader || jobData.site || "getjobscanada";
+
   let employerRecord = await Employer.findOne({ authUserId: userId });
   if (!employerRecord) {
     employerRecord = await Employer.create({
       authUserId: userId,
-      orgName: jobData.company.trim(),
+      orgName: (jobData.company || "Employer").trim(),
+      site: targetSite,
     });
   }
 
@@ -146,51 +155,84 @@ export async function createJob(userId, jobData) {
     throw error;
   }
 
-  const location = [jobData.city.trim(), jobData.province.trim()].join(", ");
+  const location = [jobData.city?.trim() || "", jobData.province?.trim() || ""].filter(Boolean).join(", ");
   let expiresAt = null;
-  if (jobData.runDays) {
-    const daysToAdd = parseInt(jobData.runDays) || 30;
+  const runDaysVal = jobData.runDays || jobData.adDurationDays || "30";
+  if (runDaysVal) {
+    const daysToAdd = parseInt(runDaysVal) || 30;
     expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + daysToAdd);
   }
 
-  const formattedApplyMethods = jobData.applyMethods.map((method) => {
-    const formatted = { method: method.method };
-    if (method.email) formatted.email = method.email.toLowerCase().trim();
-    if (method.phone) formatted.phone = method.phone.trim();
-    if (method.mailAddress) formatted.mailAddress = method.mailAddress.trim();
-    if (method.inPersonAddress) formatted.inPersonAddress = method.inPersonAddress.trim();
-    if (method.inPersonTiming) formatted.inPersonTiming = method.inPersonTiming.trim();
-    return formatted;
-  });
+  // Handle Apply Methods from either array or toggle fields
+  let formattedApplyMethods = [];
+  if (Array.isArray(jobData.applyMethods) && jobData.applyMethods.length > 0) {
+    formattedApplyMethods = jobData.applyMethods.map((method) => {
+      const formatted = { method: method.method };
+      if (method.email) formatted.email = method.email.toLowerCase().trim();
+      if (method.phone) formatted.phone = method.phone.trim();
+      if (method.mailAddress) formatted.mailAddress = method.mailAddress.trim();
+      if (method.inPersonAddress) formatted.inPersonAddress = method.inPersonAddress.trim();
+      if (method.inPersonTiming) formatted.inPersonTiming = method.inPersonTiming.trim();
+      return formatted;
+    });
+  } else {
+    // Convert boolean toggles (Youth Employment format)
+    if (jobData.byEmail && jobData.applicationEmail) {
+      formattedApplyMethods.push({ method: "email", email: jobData.applicationEmail.toLowerCase().trim() });
+    }
+    if (jobData.byPhone && jobData.phone) {
+      formattedApplyMethods.push({ method: "phone", phone: jobData.phone.trim() });
+    }
+    if (jobData.byMail && jobData.mailingAddress) {
+      formattedApplyMethods.push({ method: "mail", mailAddress: jobData.mailingAddress.trim() });
+    }
+    if (jobData.inPerson && jobData.inPersonAddress) {
+      const timing = [jobData.inPersonFromTime, jobData.inPersonToTime].filter(Boolean).join(" - ");
+      formattedApplyMethods.push({
+        method: "inPerson",
+        inPersonAddress: jobData.inPersonAddress.trim(),
+        inPersonTiming: timing || undefined,
+      });
+    }
+  }
+
+  // Fallback to contact email if apply methods empty
+  if (formattedApplyMethods.length === 0 && (jobData.contactEmail || jobData.email)) {
+    formattedApplyMethods.push({
+      method: "email",
+      email: (jobData.contactEmail || jobData.email).toLowerCase().trim(),
+    });
+  }
 
   const newJobId = await generateJobId();
 
   const createdJob = await Job.create({
     employerId: employerRecord._id,
+    site: targetSite,
     jobId: newJobId,
     title: jobData.title.trim(),
     company: jobData.company.trim(),
-    contactName: jobData.contactName.trim(),
+    contactName: (jobData.contactName || "Hiring Manager").trim(),
     city: jobData.city.trim(),
     province: jobData.province.trim(),
     location,
     salary: jobData.salary?.trim() || "",
-    salaryType: jobData.salaryType || "hour",
+    salaryType: jobData.salaryType || jobData.salaryPeriod || "hour",
     vacancies: Number(jobData.vacancies) || 1,
     employmentType: jobData.employmentType,
     category: jobData.category.trim(),
-    nocCode: jobData.nocCode.trim(),
-    runDays: jobData.runDays || "30",
+    nocCode: jobData.nocCode?.trim() || "",
+    runDays: String(runDaysVal),
     experience: jobData.experience?.trim() || "",
     startDate: jobData.startDate || "",
     descriptionHtml: jobData.descriptionHtml.trim(),
     requirementsHtml: jobData.requirementsHtml?.trim() || "",
     website: jobData.website?.trim() || "",
-    indigenousOwned: jobData.indigenousOwned ?? false,
-    remote: jobData.remote ?? false,
+    indigenousOwned: Boolean(jobData.indigenousOwned || jobData.indigenous),
+    remote: Boolean(jobData.remote),
     status: "active",
-    indigenousPreference: jobData.indigenousOwned ?? false,
+    indigenousPreference: Boolean(jobData.indigenousOwned || jobData.indigenous),
     expiresAt,
     applyMethods: formattedApplyMethods,
     packageId: employerPackage._id,

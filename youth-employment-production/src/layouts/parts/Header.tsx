@@ -5,6 +5,7 @@ import { Menu, X, ChevronDown, LogOut, User, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSession, signOut } from "@/lib/auth/auth-client";
+import { apiClient } from "@/lib/api-client";
 
 // Click outside hook
 function useClickOutside<T extends HTMLElement>(
@@ -101,14 +102,9 @@ export default function Header() {
       }
 
       try {
-        const response = await fetch("/api/employer/package", {
-          credentials: "include",
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          setPackageData(data.package);
+        const data = await apiClient.get("/employer/package");
+        if (data.package || data.data) {
+          setPackageData(data.package || data.data);
         }
       } catch (error) {
         console.error("Failed to fetch package:", error);

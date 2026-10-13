@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { apiClient } from "@/lib/api-client";
 
 // ─── Animation Variants ───────────────────────────────────────────────────────
 
@@ -311,9 +312,7 @@ export default function HomePage() {
   const { data: jobsResponse, isLoading: jobsLoading } = useQuery({
     queryKey: ["home-jobs"],
     queryFn: async () => {
-      const res = await fetch("/api/jobs?limit=6");
-      if (!res.ok) throw new Error("Failed to fetch jobs");
-      return res.json();
+      return apiClient.get("/jobs", { params: { limit: 6 } });
     },
   });
 
@@ -325,13 +324,10 @@ export default function HomePage() {
   } = useQuery({
     queryKey: ["search-jobs", searchQuery, searchLocation],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchQuery) params.append("search", searchQuery);
-      if (searchLocation) params.append("province", searchLocation);
-      params.append("limit", "8");
-      const res = await fetch(`/api/jobs?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to search jobs");
-      return res.json();
+      const params: Record<string, string> = { limit: "8" };
+      if (searchQuery) params.search = searchQuery;
+      if (searchLocation) params.province = searchLocation;
+      return apiClient.get("/jobs", { params });
     },
     enabled: false,
   });

@@ -7,6 +7,12 @@ const EmployerSchema = new Schema(
       type: String,
       required: true,
     },
+    site: {
+      type: String,
+      enum: ["getjobscanada", "aboriginal", "youthemployment"],
+      default: "getjobscanada",
+      index: true,
+    },
     currentPackageId: {
       type: Schema.Types.ObjectId,
       ref: "EmployerPackage",
@@ -26,5 +32,6 @@ const EmployerSchema = new Schema(
 );
 
 EmployerSchema.index({ orgName: 1 });
+EmployerSchema.index({ site: 1 });
 
 export const Employer = models.Employer || model("Employer", EmployerSchema);
