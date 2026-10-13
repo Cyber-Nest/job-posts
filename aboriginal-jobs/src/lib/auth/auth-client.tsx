@@ -18,6 +18,10 @@ export interface SignUpFn {
 const baseSignIn = async function ({ email, password }: any) {
   try {
     const data = await apiClient.post("/auth/login", { email, password });
+    if (data?.session?.token && typeof window !== "undefined") {
+      localStorage.setItem("session_token", data.session.token);
+      document.cookie = `better-auth.session_token=${encodeURIComponent(data.session.token)}; path=/; max-age=2592000; SameSite=Lax`;
+    }
     return { data, error: null };
   } catch (err: any) {
     return { data: null, error: { message: err.message || "Login failed" } };
@@ -45,6 +49,10 @@ export const signIn: SignInFn = Object.assign(baseSignIn, {
 const baseSignUp = async function (data: any) {
   try {
     const responseData = await apiClient.post("/auth/register-employer", data);
+    if (responseData?.session?.token && typeof window !== "undefined") {
+      localStorage.setItem("session_token", responseData.session.token);
+      document.cookie = `better-auth.session_token=${encodeURIComponent(responseData.session.token)}; path=/; max-age=2592000; SameSite=Lax`;
+    }
     return { data: responseData, error: null };
   } catch (err: any) {
     return { data: null, error: { message: err.message || "Registration failed" } };
@@ -60,6 +68,10 @@ export const signUp: SignUpFn = Object.assign(baseSignUp, {
 });
 
 export async function signOut() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("session_token");
+    document.cookie = "better-auth.session_token=; path=/; max-age=0; SameSite=Lax";
+  }
   return apiClient.post("/auth/logout");
 }
 
@@ -80,9 +92,14 @@ export function useSession() {
       .get("/auth/session")
       .then((res) => {
         if (isMounted) {
+          const activeUser = res?.user || res?.session?.user || null;
+          const activeSession = res?.session
+            ? { ...res.session, user: activeUser }
+            : null;
+
           setSessionData({
-            session: res?.session || null,
-            user: res?.user || null,
+            session: activeSession,
+            user: activeUser,
             isPending: false,
             error: null,
           });

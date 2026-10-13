@@ -41,6 +41,7 @@ async function request<T = any>(
 
   const requestHeaders: Record<string, string> = {
     ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    "X-Site-ID": "getjobscanada",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(headers as Record<string, string>),
   };

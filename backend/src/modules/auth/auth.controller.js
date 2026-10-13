@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { Employer } from "../employers/employer.model.js";
 import { EmployerPackage } from "../packages/employerPackage.model.js";
 import { EmployerPackageHistory } from "../packages/employerPackageHistory.model.js";
-import { sendOtpEmail } from "../../utils/mailer.js";
+import { sendOtpEmail, resolveSiteFromRequest } from "../../utils/mailer.js";
 import { hashPasswordSync, comparePasswordSync } from "../../utils/password.js";
 import { logger } from "../../utils/logger.js";
 
@@ -19,6 +19,7 @@ export async function sendOtpHandler(req, res, next) {
     }
 
     const cleanEmail = email.toLowerCase().trim();
+    const site = resolveSiteFromRequest(req);
     const db = mongoose.connection.db;
 
     // Check if user already exists
@@ -47,12 +48,12 @@ export async function sendOtpHandler(req, res, next) {
       createdAt: new Date(),
     });
 
-    logger.info(`[AUTH] Verification OTP generated for ${cleanEmail}: ${otpCode}`);
+    logger.info(`[AUTH] Verification OTP generated for ${cleanEmail} (site: ${site}): ${otpCode}`);
 
     // Send Email
     try {
-      await sendOtpEmail(cleanEmail, otpCode, "Your GetJobsCanada Verification Code");
-      logger.info(`[AUTH] Verification OTP email dispatched to ${cleanEmail}`);
+      await sendOtpEmail(cleanEmail, otpCode, { site, type: "verification" });
+      logger.info(`[AUTH] Verification OTP email dispatched to ${cleanEmail} for site: ${site}`);
     } catch (mailErr) {
       logger.error(`[AUTH] Failed to send OTP email to ${cleanEmail}`, { error: mailErr.message });
     }
@@ -143,6 +144,7 @@ export async function registerEmployerHandler(req, res, next) {
     await userCollection.insertOne(newUserDoc);
 
     // Create or update Employer profile
+    const site = resolveSiteFromRequest(req);
     const employerOrgName = company || name || "Company";
     let employer = await Employer.findOne({
       $or: [{ authUserId: String(userId) }, { email: cleanEmail }],
@@ -150,6 +152,7 @@ export async function registerEmployerHandler(req, res, next) {
     if (!employer) {
       employer = await Employer.create({
         authUserId: String(userId),
+        site: site,
         orgName: employerOrgName,
         contactName: contactName || name || "Hiring Team",
         email: cleanEmail,
@@ -483,8 +486,9 @@ export async function forgotPasswordSendOtpHandler(req, res, next) {
       createdAt: new Date(),
     });
 
+    const site = resolveSiteFromRequest(req);
     try {
-      await sendOtpEmail(cleanEmail, otpCode, "Reset Your Password - GetJobsCanada");
+      await sendOtpEmail(cleanEmail, otpCode, { site, type: "password_reset" });
     } catch (mailErr) {
       console.error("Failed to send reset OTP:", mailErr);
     }

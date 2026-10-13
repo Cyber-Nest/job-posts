@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/input-otp";
 import toast from "react-hot-toast";
 import { signIn } from "@/lib/auth/auth-client";
+import { apiClient } from "@/lib/api-client";
 
 /* ── Types ──────────────────────────────────────────────────────────── */
 interface FormData {
@@ -302,21 +303,7 @@ function RegisterForm() {
       setEmailForOtp(form.email); // Store email for resend
 
       try {
-        const res = await fetch("/api/auth/otp/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: form.email }),
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          const errMsg =
-            data.error || "Failed to send verification code. Please try again.";
-          setServerError(errMsg);
-          toast.error(errMsg);
-          setLoading(false);
-          return;
-        }
+        const data = await apiClient.post("/auth/otp/send", { email: form.email, site: "aboriginal" });
 
         if (data._devOtp) {
           setDevOtp(data._devOtp);
@@ -332,9 +319,10 @@ function RegisterForm() {
           "A 6-digit verification code has been sent to your email.",
         );
         toast.success("Verification code sent to your email!");
-      } catch {
-        setServerError("Something went wrong. Please try again.");
-        toast.error("Something went wrong. Please try again.");
+      } catch (err: any) {
+        const errMsg = err?.message || "Failed to send verification code. Please try again.";
+        setServerError(errMsg);
+        toast.error(errMsg);
       } finally {
         setLoading(false);
       }
@@ -349,45 +337,26 @@ function RegisterForm() {
       setServerError("");
       try {
         // Verify the OTP
-        const verifyRes = await fetch("/api/auth/otp/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: form.email, otp: otpVal }),
-        });
-        const verifyData = await verifyRes.json();
-
-        if (!verifyRes.ok) {
-          const errMsg =
-            verifyData.error || "Incorrect or expired verification code.";
-          setServerError(errMsg);
-          toast.error(errMsg);
-          setLoading(false);
-          return;
-        }
+        await apiClient.post("/auth/otp/verify", { email: form.email, otp: otpVal });
 
         // Register the employer
-        const registerRes = await fetch("/api/auth/register-employer", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            firstName: form.firstName,
-            lastName: form.lastName,
-            email: form.email,
-            password: form.password,
-            orgName: form.orgName,
-            province: form.province,
-          }),
+        const regRes = await apiClient.post("/auth/register-employer", {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          name: `${form.firstName} ${form.lastName}`.trim(),
+          email: form.email,
+          password: form.password,
+          company: form.orgName,
+          orgName: form.orgName,
+          province: form.province,
+          site: "aboriginal",
         });
 
-        const registerData = await registerRes.json();
-
-        if (!registerRes.ok) {
-          const errMsg = registerData.error || "Registration failed.";
-          setServerError(errMsg);
-          toast.error(errMsg);
-          setLoading(false);
-          return;
+        if (regRes?.session?.token && typeof window !== "undefined") {
+          localStorage.setItem("session_token", regRes.session.token);
+          document.cookie = `better-auth.session_token=${encodeURIComponent(regRes.session.token)}; path=/; max-age=2592000; SameSite=Lax`;
         }
+
         // Auto login after successful registration
         const loginResult = await signIn.email({
           email: form.email,
@@ -406,13 +375,10 @@ function RegisterForm() {
         toast.success("Account created successfully! Welcome aboard!");
         window.scrollTo({ top: 0, behavior: "smooth" });
         setSubmitted(true);
-      } catch {
-        setServerError(
-          "An error occurred during account creation. Please try again.",
-        );
-        toast.error(
-          "An error occurred during account creation. Please try again.",
-        );
+      } catch (err: any) {
+        const errMsg = err?.message || "An error occurred during account creation. Please try again.";
+        setServerError(errMsg);
+        toast.error(errMsg);
       } finally {
         setLoading(false);
       }
@@ -425,20 +391,7 @@ function RegisterForm() {
     setServerError("");
     setOtpSentMsg("");
     try {
-      const res = await fetch("/api/auth/otp/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailForOtp || form.email }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errMsg = data.error || "Failed to resend verification code.";
-        setServerError(errMsg);
-        toast.error(errMsg);
-        setLoading(false);
-        return;
-      }
+      const data = await apiClient.post("/auth/otp/send", { email: emailForOtp || form.email, site: "aboriginal" });
 
       if (data._devOtp) {
         setDevOtp(data._devOtp);
@@ -450,9 +403,10 @@ function RegisterForm() {
       );
       setOtpVal("");
       toast.success("New verification code sent!");
-    } catch {
-      setServerError("Failed to resend code. Please try again.");
-      toast.error("Failed to resend code. Please try again.");
+    } catch (err: any) {
+      const errMsg = err?.message || "Failed to resend code. Please try again.";
+      setServerError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
