@@ -45,10 +45,19 @@ export async function getJobByIdHandler(req, res, next) {
       inPersonToTime: job.applyMethods?.find((m) => m.method === "inPerson")?.inPersonTiming?.split(" - ")[1] || "",
     };
 
+    const salaryPeriod = job.salaryPeriod || job.salaryType || "hour";
+    const postingDate = job.jobPostingDate || job.postDate || job.postedAt || job.createdAt || new Date();
+
     const formattedJob = {
       ...job,
       id: job._id,
       jobUniqueId: job.jobId || null,
+      salary: job.salary ? String(job.salary).trim() : "",
+      salaryPeriod,
+      salaryType: salaryPeriod,
+      jobPostingDate: postingDate,
+      postDate: postingDate,
+      postedAt: postingDate,
       howToApply,
     };
 

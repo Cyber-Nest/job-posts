@@ -373,7 +373,7 @@ export default function JobDetailPage() {
                   </span>
                   <span className="inline-flex items-center gap-2 text-sm text-gray-600 bg-white border border-blue-200 rounded-full px-4 py-1.5">
                     <Clock size={13} className="text-blue-500" />
-                    {`Posted on ${formatJobDate(job.jobPostingDate)}`}
+                    {`Posted on ${formatJobDate(job.jobPostingDate || (job as any).postDate || (job as any).postedAt || (job as any).createdAt)}`}
                   </span>
                   {job.jobUniqueId && (
                     <span className="inline-flex items-center gap-2 text-sm text-gray-600 bg-white border border-blue-200 rounded-full px-4 py-1.5">
@@ -381,10 +381,12 @@ export default function JobDetailPage() {
                       Job ID: {job.jobUniqueId}
                     </span>
                   )}
-                  <span className="inline-flex items-center gap-2 text-sm text-gray-600 bg-white border border-blue-200 rounded-full px-4 py-1.5">
-                    <DollarSign size={13} className="text-blue-500" />
-                    {job.salary}/{job.salaryPeriod as any}
-                  </span>
+                  {job.salary && (
+                    <span className="inline-flex items-center gap-2 text-sm text-gray-600 bg-white border border-blue-200 rounded-full px-4 py-1.5">
+                      <DollarSign size={13} className="text-blue-500" />
+                      {job.salary.startsWith("$") ? job.salary.slice(1).trim() : job.salary}/{(job.salaryPeriod || (job as any).salaryType || "hour") as any}
+                    </span>
+                  )}
                   <span className="inline-flex items-center gap-2 text-sm text-gray-600 bg-white border border-blue-200 rounded-full px-4 py-1.5">
                     <Clock size={13} className="text-blue-500" />
                     Closes on {formatJobDate(job.expiresAt)}

@@ -101,10 +101,10 @@ function JobSearchCard({ job, onClick }: { job: any; onClick: () => void }) {
               {job.location || `${job.city || ""}, ${job.province || ""}`}
             </span>
           </span>
-          {formatSalary(job.salary, job.salaryPeriod) && (
+          {formatSalary(job.salary, job.salaryPeriod || job.salaryType) && (
             <span className="inline-flex items-center gap-1.5 text-xs text-green-600">
               <Star size={11} className="text-green-500" />
-              {formatSalary(job.salary, job.salaryPeriod)}
+              {formatSalary(job.salary, job.salaryPeriod || job.salaryType)}
             </span>
           )}
         </div>

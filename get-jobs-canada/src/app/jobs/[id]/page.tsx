@@ -934,7 +934,7 @@ export default function JobDetailPage() {
                     </div>
                     <div>
                       <span className="text-[11px] text-slate-400 font-bold block">Experience Level</span>
-                      <span className="text-xs font-bold text-slate-800">{job.experience} {parseInt(job.experience) > 1 ? "Years" : "Year"}</span>
+                      <span className="text-xs font-bold text-slate-800">{/yr|year/i.test(job.experience) ? job.experience : `${job.experience} ${parseInt(job.experience) > 1 ? "Years" : "Year"}`}</span>
                     </div>
                   </div>
                 )}

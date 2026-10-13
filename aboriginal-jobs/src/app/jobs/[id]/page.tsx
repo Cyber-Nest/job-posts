@@ -915,8 +915,7 @@ export default function JobDetailPage() {
                   {job.experience && (
                     <span className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-[#6B3A2A]/70 bg-white border border-[#C8782A]/12 rounded-full px-3 sm:px-4 py-1 sm:py-1.5">
                       <Briefcase size={12} className="text-[#C8782A]" />
-                      {job.experience}{" "}
-                      {parseInt(job.experience) > 1 ? "years" : "year"}
+                      {/yr|year/i.test(job.experience) ? job.experience : `${job.experience} ${parseInt(job.experience) > 1 ? "years" : "year"}`}
                     </span>
                   )}
                   {job.startDate && (

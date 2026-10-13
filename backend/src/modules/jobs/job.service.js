@@ -63,14 +63,7 @@ export async function getAllJobs(queryParams) {
   const formattedJobs = jobs.map((job) => {
     let formattedExperience = "";
     if (job.experience) {
-      if (!isNaN(Number(job.experience))) {
-        const years = Number(job.experience);
-        formattedExperience = `${years} ${years === 1 ? "year" : "years"}`;
-      } else if (job.experience.includes("+") && !job.experience.toLowerCase().includes("year")) {
-        formattedExperience = `${job.experience} year`;
-      } else {
-        formattedExperience = job.experience;
-      }
+      formattedExperience = String(job.experience).trim();
     }
 
     const howToApply = {
@@ -99,6 +92,7 @@ export async function getAllJobs(queryParams) {
       location: job.location || [job.city, job.province].filter(Boolean).join(", "),
       salary: job.salary ? `${job.salary}` : "",
       salaryType: job.salaryType || job.salaryPeriod || "hour",
+      salaryPeriod: job.salaryPeriod || job.salaryType || "hour",
       employmentType: job.employmentType || "",
       category: job.category || "",
       nocCode: job.nocCode || "",
@@ -114,6 +108,8 @@ export async function getAllJobs(queryParams) {
       contactEmail: job.contactEmail || "",
       website: job.website || "",
       postDate: job.postDate || job.postedAt || job.createdAt || new Date(),
+      postedAt: job.postedAt || job.postDate || job.createdAt || new Date(),
+      jobPostingDate: job.jobPostingDate || job.postDate || job.postedAt || job.createdAt || new Date(),
       remote: Boolean(job.remote),
       indigenousOwned: Boolean(job.indigenousOwned || job.indigenous),
       indigenousPreference: Boolean(job.indigenousPreference || job.indigenousOwned || job.indigenous),

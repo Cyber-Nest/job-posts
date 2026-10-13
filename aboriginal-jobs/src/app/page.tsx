@@ -214,8 +214,7 @@ function JobSearchCard({ job }: { job: JobCardProps }) {
           <div className="flex flex-wrap gap-2 mb-3">
             {job.experience && (
               <span className="inline-flex items-center gap-1 text-xs bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full">
-                <Briefcase size={10} /> {job.experience}{" "}
-                {parseInt(job.experience) > 1 ? "years" : "year"}
+                <Briefcase size={10} /> {/yr|year/i.test(job.experience) ? job.experience : `${job.experience} ${parseInt(job.experience) > 1 ? "years" : "year"}`}
               </span>
             )}
             {job.startDate && getStartDateLabel(job.startDate) && (

@@ -533,12 +533,12 @@ export default function DashboardPage() {
                                 className="text-blue-600/60 stroke-[2.5]"
                               />
                               {job.salary
-                                ? formatSalary(job.salary, job.salaryPeriod)
+                                ? formatSalary(job.salary, job.salaryPeriod || (job as any).salaryType)
                                 : "N/A"}
                             </span>
                             <span className="flex items-center gap-1.5 text-slate-400 truncate text-[11px]">
                               <Calendar size={14} className="text-slate-300" />
-                              Posted: {formatDate(job.jobPostingDate)}
+                              Posted: {formatDate(job.jobPostingDate || (job as any).postDate || (job as any).postedAt || (job as any).createdAt)}
                             </span>
                           </div>
 

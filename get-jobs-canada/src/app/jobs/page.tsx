@@ -314,7 +314,7 @@ function JobCard({ job, viewMode = "grid" }: { job: Job; viewMode?: "grid" | "li
               )}
               {job.experience && (
                 <span className="inline-flex items-center gap-1 text-[11px] text-slate-600 bg-slate-50 border border-slate-200/60 px-2.5 py-0.5 rounded-md font-medium">
-                  <Briefcase size={11} className="text-slate-400" /> Exp: {job.experience} {parseInt(job.experience) > 1 ? "yrs" : "yr"}
+                  <Briefcase size={11} className="text-slate-400" /> Exp: {/yr|year/i.test(job.experience) ? job.experience : `${job.experience} ${parseInt(job.experience) > 1 ? "yrs" : "yr"}`}
                 </span>
               )}
             </div>

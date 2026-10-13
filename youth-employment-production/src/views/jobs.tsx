@@ -223,8 +223,8 @@ function JobCard({ job }: { job: Job }) {
           </span>
           {job.salary && (
             <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
-              <DollarSign size={11} className="text-blue-500" />{job.salary}
-              {job.salaryPeriod ? ` / ${job.salaryPeriod}` : ""}
+              <DollarSign size={11} className="text-blue-500" />{job.salary.startsWith("$") ? job.salary.slice(1).trim() : job.salary}
+              {job.salaryPeriod || (job as any).salaryType ? ` / ${job.salaryPeriod || (job as any).salaryType}` : ""}
             </span>
           )}
         </div>
