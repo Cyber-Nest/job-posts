@@ -15,6 +15,11 @@ export const signUp = {
   email: async (data: { email: string; password: string; name?: string }) => {
     try {
       const result = await apiClient.post('/auth/register-employer', data);
+      const token = result.session?.token || result.token;
+      if (token && typeof window !== 'undefined') {
+        localStorage.setItem('session_token', token);
+        document.cookie = `better-auth.session_token=${encodeURIComponent(token)}; path=/; max-age=2592000; SameSite=Lax`;
+      }
       updateAuthState({ user: result.user ?? null, error: null });
       return { data: result };
     } catch (err: any) {
@@ -37,6 +42,11 @@ export type RegisterEmployerPayload = {
 export async function registerEmployer(data: RegisterEmployerPayload) {
   try {
     const result = await apiClient.post('/auth/register-employer', data);
+    const token = result.session?.token || result.token;
+    if (token && typeof window !== 'undefined') {
+      localStorage.setItem('session_token', token);
+      document.cookie = `better-auth.session_token=${encodeURIComponent(token)}; path=/; max-age=2592000; SameSite=Lax`;
+    }
     return { data: result };
   } catch (error: any) {
     const message = error.message || 'Unable to connect to registration service.';
@@ -89,6 +99,11 @@ async function ensureAuthStateLoaded() {
 export async function loginWithIdentifier(identifier: string, password: string) {
   try {
     const result = await apiClient.post('/auth/login', { email: identifier, password });
+    const token = result.session?.token || result.token;
+    if (token && typeof window !== 'undefined') {
+      localStorage.setItem('session_token', token);
+      document.cookie = `better-auth.session_token=${encodeURIComponent(token)}; path=/; max-age=2592000; SameSite=Lax`;
+    }
     updateAuthState({ user: result.user ?? null, error: null });
     return { data: result };
   } catch (err: any) {
@@ -108,6 +123,10 @@ export async function fetchAuthMe() {
 export async function logout() {
   try {
     const data = await apiClient.post('/auth/logout');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('session_token');
+      document.cookie = 'better-auth.session_token=; path=/; max-age=0; SameSite=Lax';
+    }
     updateAuthState({ user: null, error: null });
     return { data };
   } catch (err: any) {

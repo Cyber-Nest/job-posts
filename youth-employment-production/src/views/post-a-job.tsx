@@ -683,10 +683,11 @@ export default function PostAJobPage({
         toast.success("Job posting published successfully!");
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
-    } catch (error) {
-      console.error("UPDATE ERROR:", error);
+    } catch (error: any) {
+      console.error("POST/UPDATE ERROR:", error);
       const errMsg =
-        "Network error. Please check your connection and try again.";
+        error?.message ||
+        "Failed to post job. Please check your connection or credits and try again.";
       setServerError(errMsg);
       toast.error(errMsg);
     } finally {

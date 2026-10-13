@@ -82,8 +82,9 @@ const JobSchema = new Schema(
     },
     salaryType: {
       type: String,
-      enum: ["hour", "week", "month", "year"],
       default: "hour",
+      lowercase: true,
+      trim: true,
     },
     vacancies: {
       type: Number,
@@ -101,8 +102,8 @@ const JobSchema = new Schema(
     },
     employmentType: {
       type: String,
-      enum: ["Full-time", "Part-time", "Contract", "Casual", "Volunteer"],
       required: true,
+      trim: true,
     },
     category: {
       type: String,
@@ -116,7 +117,6 @@ const JobSchema = new Schema(
     },
     runDays: {
       type: String,
-      enum: ["30", "60", "90", "120", "150"],
       default: "30",
     },
     experience: {
@@ -126,8 +126,33 @@ const JobSchema = new Schema(
     },
     startDate: {
       type: String,
-      enum: ["asap", "immediate", "1week", "2weeks", "1month", ""],
       default: "",
+      trim: true,
+    },
+    positionType: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    education: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    travel: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    vacation: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    contactType: {
+      type: String,
+      default: "",
+      trim: true,
     },
     descriptionHtml: {
       type: String,
