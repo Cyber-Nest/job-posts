@@ -4,6 +4,18 @@ import { PaymentTransaction } from "../payments/paymentTransaction.model.js";
 import { Job } from "../jobs/job.model.js";
 import mongoose from "mongoose";
 
+async function findEmployerByUser(user) {
+  if (!user) return null;
+  const queries = [
+    { authUserId: String(user.id) },
+    { authUserId: user.id },
+  ];
+  if (user.email) {
+    queries.push({ email: user.email.toLowerCase().trim() });
+  }
+  return await Employer.findOne({ $or: queries });
+}
+
 export async function checkEmployerHandler(req, res, next) {
   try {
     const { email } = req.query;
@@ -11,12 +23,19 @@ export async function checkEmployerHandler(req, res, next) {
       return res.status(200).json({ isEmployer: false });
     }
 
-    const user = await mongoose.connection.collection("user").findOne({ email });
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await mongoose.connection.collection("user").findOne({ email: cleanEmail });
     if (!user) {
       return res.status(200).json({ isEmployer: false });
     }
 
-    const employer = await Employer.findOne({ authUserId: user._id.toString() });
+    const employer = await Employer.findOne({
+      $or: [
+        { authUserId: user._id.toString() },
+        { authUserId: user._id },
+        { email: cleanEmail },
+      ],
+    });
     return res.status(200).json({ isEmployer: !!employer });
   } catch (error) {
     next(error);
@@ -25,7 +44,7 @@ export async function checkEmployerHandler(req, res, next) {
 
 export async function getEmployerProfileHandler(req, res, next) {
   try {
-    const employer = await Employer.findOne({ authUserId: req.user.id });
+    const employer = await findEmployerByUser(req.user);
     if (!employer) {
       return res.status(404).json({ success: false, error: "Employer profile not found." });
     }
@@ -37,11 +56,21 @@ export async function getEmployerProfileHandler(req, res, next) {
 
 export async function updateEmployerProfileHandler(req, res, next) {
   try {
-    const employer = await Employer.findOneAndUpdate(
-      { authUserId: req.user.id },
-      { $set: req.body },
-      { new: true, upsert: true }
-    );
+    let employer = await findEmployerByUser(req.user);
+    if (!employer) {
+      employer = await Employer.create({
+        authUserId: String(req.user.id),
+        orgName: req.body.orgName || req.user.name || "Company",
+        email: req.user.email,
+        ...req.body,
+      });
+    } else {
+      employer = await Employer.findByIdAndUpdate(
+        employer._id,
+        { $set: req.body },
+        { new: true }
+      );
+    }
     return res.status(200).json({ success: true, data: employer, message: "Employer profile updated successfully." });
   } catch (error) {
     next(error);
@@ -50,15 +79,36 @@ export async function updateEmployerProfileHandler(req, res, next) {
 
 export async function getEmployerPackageHandler(req, res, next) {
   try {
-    const employer = await Employer.findOne({ authUserId: req.user.id });
+    let employer = await findEmployerByUser(req.user);
     if (!employer) {
       return res.status(404).json({ success: false, error: "Employer not found." });
     }
 
-    const employerPackage = await EmployerPackage.findOne({
+    let employerPackage = await EmployerPackage.findOne({
       employerId: employer._id,
       status: "Active",
     }).lean();
+
+    // Auto-provision 1 free credit if employer has no package records
+    if (!employerPackage) {
+      const anyPkg = await EmployerPackage.findOne({ employerId: employer._id });
+      if (!anyPkg) {
+        const newPkg = await EmployerPackage.create({
+          employerId: employer._id,
+          packageName: "Free Plan",
+          remainingCredits: 1,
+          totalCreditsPurchased: 1,
+          unlimitedJobs: false,
+          isFreePlan: true,
+          jobPostExpiryDays: 30,
+          status: "Active",
+          purchasedAt: new Date(),
+        });
+        employer.currentPackageId = newPkg._id;
+        await employer.save();
+        employerPackage = newPkg.toObject();
+      }
+    }
 
     const latestPayment = await PaymentTransaction.findOne({
       employerId: employer._id,
@@ -83,7 +133,7 @@ export async function getEmployerPackageHandler(req, res, next) {
 
 export async function getEmployerStatsHandler(req, res, next) {
   try {
-    const employer = await Employer.findOne({ authUserId: req.user.id });
+    const employer = await findEmployerByUser(req.user);
     if (!employer) {
       return res.status(200).json({
         success: true,
@@ -120,7 +170,7 @@ export async function getEmployerStatsHandler(req, res, next) {
 
 export async function getEmployerJobsHandler(req, res, next) {
   try {
-    const employer = await Employer.findOne({ authUserId: req.user.id });
+    const employer = await findEmployerByUser(req.user);
     if (!employer) {
       return res.status(404).json({ success: false, error: "Employer profile not found." });
     }

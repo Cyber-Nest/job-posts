@@ -22,7 +22,11 @@ export async function authMiddleware(req, res, next) {
     }
 
     const userCollection = db.collection("user");
-    const userDoc = await userCollection.findOne({ _id: sessionDoc.userId });
+    let userQuery = { _id: sessionDoc.userId };
+    if (typeof sessionDoc.userId === "string" && mongoose.Types.ObjectId.isValid(sessionDoc.userId)) {
+      userQuery = { $or: [{ _id: sessionDoc.userId }, { _id: new mongoose.Types.ObjectId(sessionDoc.userId) }] };
+    }
+    const userDoc = await userCollection.findOne(userQuery);
 
     if (!userDoc) {
       return res.status(401).json({ success: false, error: "User not found." });
@@ -32,6 +36,7 @@ export async function authMiddleware(req, res, next) {
       id: String(userDoc._id),
       email: userDoc.email,
       name: userDoc.name,
+      role: userDoc.role || "employer",
     };
 
     next();

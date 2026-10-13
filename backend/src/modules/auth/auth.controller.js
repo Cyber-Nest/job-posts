@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
 import { Employer } from "../employers/employer.model.js";
+import { EmployerPackage } from "../packages/employerPackage.model.js";
+import { EmployerPackageHistory } from "../packages/employerPackageHistory.model.js";
 import { sendOtpEmail } from "../../utils/mailer.js";
 import { hashPasswordSync, comparePasswordSync } from "../../utils/password.js";
 import { logger } from "../../utils/logger.js";
@@ -142,7 +144,9 @@ export async function registerEmployerHandler(req, res, next) {
 
     // Create or update Employer profile
     const employerOrgName = company || name || "Company";
-    let employer = await Employer.findOne({ authUserId: String(userId) });
+    let employer = await Employer.findOne({
+      $or: [{ authUserId: String(userId) }, { email: cleanEmail }],
+    });
     if (!employer) {
       employer = await Employer.create({
         authUserId: String(userId),
@@ -155,6 +159,40 @@ export async function registerEmployerHandler(req, res, next) {
         address: address || "",
         postalCode: postalCode || "",
       });
+    }
+
+    // Auto-provision 1 Free Credit for new Employer
+    let existingPackage = await EmployerPackage.findOne({ employerId: employer._id });
+    if (!existingPackage) {
+      const freePackage = await EmployerPackage.create({
+        employerId: employer._id,
+        packageName: "Free Plan",
+        remainingCredits: 1,
+        totalCreditsPurchased: 1,
+        unlimitedJobs: false,
+        isFreePlan: true,
+        jobPostExpiryDays: 30,
+        status: "Active",
+        purchasedAt: new Date(),
+      });
+
+      employer.currentPackageId = freePackage._id;
+      await employer.save();
+
+      await EmployerPackageHistory.create({
+        employerId: employer._id,
+        packageName: "Free Plan",
+        creditsAdded: 1,
+        unlimitedJobs: false,
+        isFreePlan: true,
+        paymentStatus: "paid",
+        paymentProvider: "free_registration",
+        amount: 0,
+        currency: "CAD",
+        jobPostExpiryDays: 30,
+        purchasedAt: new Date(),
+      });
+      logger.info(`[AUTH] 1 Free Credit successfully provisioned for employer ${employer._id} (${cleanEmail})`);
     }
 
     // Create session token
@@ -171,7 +209,7 @@ export async function registerEmployerHandler(req, res, next) {
     });
 
     res.cookie("better-auth.session_token", sessionToken, {
-      httpOnly: true,
+      httpOnly: false,
       sameSite: "lax",
       expires: expiresAt,
       path: "/",
@@ -184,10 +222,18 @@ export async function registerEmployerHandler(req, res, next) {
         id: String(userId),
         email: cleanEmail,
         name: newUserDoc.name,
+        role: "employer",
       },
       session: {
         token: sessionToken,
         expiresAt: expiresAt,
+        userId: String(userId),
+        user: {
+          id: String(userId),
+          email: cleanEmail,
+          name: newUserDoc.name,
+          role: "employer",
+        },
       },
     });
   } catch (error) {
@@ -215,9 +261,71 @@ export async function loginHandler(req, res, next) {
       return res.status(401).json({ success: false, error: "Invalid email or password" });
     }
 
-    const isValidPw = comparePasswordSync(password, userDoc.password);
+    let passwordHash = userDoc.password;
+    if (!passwordHash) {
+      // Fallback: Check 'account' collection from existing auth data
+      const accountCollection = db.collection("account");
+      const accountDoc = await accountCollection.findOne({
+        $or: [
+          { userId: userDoc._id },
+          { userId: String(userDoc._id) },
+          { providerAccountId: cleanEmail },
+        ],
+      });
+      if (accountDoc && accountDoc.password) {
+        passwordHash = accountDoc.password;
+      }
+    }
+
+    if (!passwordHash) {
+      return res.status(401).json({ success: false, error: "Invalid email or password" });
+    }
+
+    const isValidPw = comparePasswordSync(password, passwordHash);
     if (!isValidPw) {
       return res.status(401).json({ success: false, error: "Invalid email or password" });
+    }
+
+    // Auto-provision 1 free credit if existing employer doesn't have a package yet
+    const employer = await Employer.findOne({
+      $or: [
+        { authUserId: String(userDoc._id) },
+        { authUserId: userDoc._id },
+        { email: cleanEmail },
+      ],
+    });
+
+    if (employer) {
+      const anyPkg = await EmployerPackage.findOne({ employerId: employer._id });
+      if (!anyPkg) {
+        const freePkg = await EmployerPackage.create({
+          employerId: employer._id,
+          packageName: "Free Plan",
+          remainingCredits: 1,
+          totalCreditsPurchased: 1,
+          unlimitedJobs: false,
+          isFreePlan: true,
+          jobPostExpiryDays: 30,
+          status: "Active",
+          purchasedAt: new Date(),
+        });
+        employer.currentPackageId = freePkg._id;
+        await employer.save();
+        await EmployerPackageHistory.create({
+          employerId: employer._id,
+          packageName: "Free Plan",
+          creditsAdded: 1,
+          unlimitedJobs: false,
+          isFreePlan: true,
+          paymentStatus: "paid",
+          paymentProvider: "free_registration",
+          amount: 0,
+          currency: "CAD",
+          jobPostExpiryDays: 30,
+          purchasedAt: new Date(),
+        });
+        logger.info(`[AUTH] Auto-provisioned free credit for logging-in employer ${employer._id}`);
+      }
     }
 
     // Create session token
@@ -234,22 +342,27 @@ export async function loginHandler(req, res, next) {
     });
 
     res.cookie("better-auth.session_token", sessionToken, {
-      httpOnly: true,
+      httpOnly: false,
       sameSite: "lax",
       expires: expiresAt,
       path: "/",
     });
 
+    const userPayload = {
+      id: String(userDoc._id),
+      email: userDoc.email,
+      name: userDoc.name,
+      role: userDoc.role || "employer",
+    };
+
     return res.status(200).json({
       success: true,
-      user: {
-        id: String(userDoc._id),
-        email: userDoc.email,
-        name: userDoc.name,
-      },
+      user: userPayload,
       session: {
         token: sessionToken,
         expiresAt: expiresAt,
+        userId: String(userDoc._id),
+        user: userPayload,
       },
     });
   } catch (error) {
@@ -282,7 +395,11 @@ export async function getSessionHandler(req, res, next) {
     }
 
     const userCollection = db.collection("user");
-    const userDoc = await userCollection.findOne({ _id: sessionDoc.userId });
+    let userQuery = { _id: sessionDoc.userId };
+    if (typeof sessionDoc.userId === "string" && mongoose.Types.ObjectId.isValid(sessionDoc.userId)) {
+      userQuery = { $or: [{ _id: sessionDoc.userId }, { _id: new mongoose.Types.ObjectId(sessionDoc.userId) }] };
+    }
+    const userDoc = await userCollection.findOne(userQuery);
 
     if (!userDoc) {
       return res.status(200).json({ session: null, user: null });
@@ -292,6 +409,7 @@ export async function getSessionHandler(req, res, next) {
       id: String(userDoc._id),
       email: userDoc.email,
       name: userDoc.name,
+      role: userDoc.role || "employer",
     };
 
     return res.status(200).json({
@@ -300,6 +418,7 @@ export async function getSessionHandler(req, res, next) {
         userId: String(userDoc._id),
         expiresAt: sessionDoc.expiresAt,
         token: token,
+        user: userData,
       },
       user: userData,
     });

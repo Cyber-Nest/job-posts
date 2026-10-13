@@ -122,23 +122,45 @@ export async function getAllJobs(queryParams) {
 export async function createJob(userId, jobData, siteFromHeader = null) {
   const targetSite = siteFromHeader || jobData.site || "getjobscanada";
 
-  let employerRecord = await Employer.findOne({ authUserId: userId });
+  let employerRecord = await Employer.findOne({
+    $or: [{ authUserId: String(userId) }, { authUserId: userId }],
+  });
   if (!employerRecord) {
     employerRecord = await Employer.create({
-      authUserId: userId,
+      authUserId: String(userId),
       orgName: (jobData.company || "Employer").trim(),
       site: targetSite,
     });
   }
 
   // Active Package Verification
-  const employerPackage = await EmployerPackage.findOne({
+  let employerPackage = await EmployerPackage.findOne({
     employerId: employerRecord._id,
     status: "Active",
   });
 
   if (!employerPackage) {
-    const error = new Error("No active package found.");
+    // If no package records exist at all, auto-provision 1 free credit
+    const anyPkg = await EmployerPackage.findOne({ employerId: employerRecord._id });
+    if (!anyPkg) {
+      employerPackage = await EmployerPackage.create({
+        employerId: employerRecord._id,
+        packageName: "Free Plan",
+        remainingCredits: 1,
+        totalCreditsPurchased: 1,
+        unlimitedJobs: false,
+        isFreePlan: true,
+        jobPostExpiryDays: 30,
+        status: "Active",
+        purchasedAt: new Date(),
+      });
+      employerRecord.currentPackageId = employerPackage._id;
+      await employerRecord.save();
+    }
+  }
+
+  if (!employerPackage) {
+    const error = new Error("No active package found. Please purchase a package to post jobs.");
     error.statusCode = 403;
     throw error;
   }

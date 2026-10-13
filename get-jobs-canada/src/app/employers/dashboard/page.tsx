@@ -998,12 +998,13 @@ export default function EmployerDashboard() {
   const [downloadingJobId, setDownloadingJobId] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  const { session, isPending: sessionLoading } = useSession();
+  const { session, user, isPending: sessionLoading } = useSession();
+  const currentUser = user || session?.user;
 
   const { data: packageResponse, isLoading: packageLoading } = useQuery({
-    queryKey: ["employer-package", session?.user?.id],
+    queryKey: ["employer-package", currentUser?.id],
     queryFn: () => apiClient.get("/employer/package"),
-    enabled: !!session?.user,
+    enabled: !!currentUser,
   });
 
   const { data: jobsData, isLoading: jobsLoading } = useQuery({
@@ -1012,7 +1013,7 @@ export default function EmployerDashboard() {
       statusFilter,
       searchQuery,
       currentPage,
-      session?.user?.id,
+      currentUser?.id,
     ],
     queryFn: () =>
       apiClient.get("/employer/jobs", {
@@ -1023,13 +1024,13 @@ export default function EmployerDashboard() {
           limit: itemsPerPage,
         },
       }),
-    enabled: !!session?.user,
+    enabled: !!currentUser,
   });
 
   const { data: statsData, isLoading: statsLoading } = useQuery({
-    queryKey: ["employer-stats", session?.user?.id],
+    queryKey: ["employer-stats", currentUser?.id],
     queryFn: () => apiClient.get("/employer/stats"),
-    enabled: !!session?.user,
+    enabled: !!currentUser,
   });
 
   const deleteMutation = useMutation({
@@ -1135,7 +1136,7 @@ export default function EmployerDashboard() {
     return <DashboardSkeleton />;
   }
 
-  if (!session?.user) {
+  if (!currentUser) {
     return (
       <div className="min-h-[85vh] flex items-center justify-center bg-white p-4">
         <div className="text-center max-w-sm w-full border border-slate-200/80 p-8 rounded-3xl bg-slate-50/50 shadow-sm">

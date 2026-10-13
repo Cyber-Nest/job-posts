@@ -333,7 +333,7 @@ function RegisterForm() {
       try {
         await apiClient.post("/auth/otp/verify", { email: form.email, otp: otpVal });
 
-        await apiClient.post("/auth/register-employer", {
+        const regRes = await apiClient.post("/auth/register-employer", {
           firstName: form.firstName,
           lastName: form.lastName,
           name: `${form.firstName} ${form.lastName}`.trim(),
@@ -344,7 +344,12 @@ function RegisterForm() {
           province: form.province,
         });
 
-        toast.success("Employer Account Created Successfully!");
+        if (regRes?.session?.token && typeof window !== "undefined") {
+          localStorage.setItem("session_token", regRes.session.token);
+          document.cookie = `better-auth.session_token=${encodeURIComponent(regRes.session.token)}; path=/; max-age=2592000; SameSite=Lax`;
+        }
+
+        toast.success("Employer Account Created Successfully! 1 Free Credit Added.");
         window.scrollTo({ top: 0, behavior: "smooth" });
         setSubmitted(true);
       } catch (err: any) {

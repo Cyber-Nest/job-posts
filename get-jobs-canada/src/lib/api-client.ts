@@ -34,8 +34,14 @@ async function request<T = any>(
   }
 
   const isFormData = data instanceof FormData;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("session_token")
+      : null;
+
   const requestHeaders: Record<string, string> = {
     ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(headers as Record<string, string>),
   };
 

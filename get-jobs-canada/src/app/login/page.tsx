@@ -59,7 +59,8 @@ function LoginForm() {
         toast.error(errMsg);
       } else {
         toast.success('Signed in successfully!');
-        window.location.href = from;
+        const targetUrl = from && from !== '/' ? from : '/employers/dashboard';
+        window.location.href = targetUrl;
       }
     } catch {
       setServerError('Something went wrong. Please try again.');

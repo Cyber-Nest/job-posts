@@ -784,11 +784,12 @@ function PostAJobContent() {
       } else {
         router.push("/employers/dashboard");
       }
-    } catch {
-      setServerError(
-        "Network error. Please check your connection and try again.",
-      );
-      toast.error("Network error. Please check your connection and try again.");
+    } catch (err: any) {
+      const errMsg =
+        err?.message ||
+        "Failed to post job. Please check your credits or try again.";
+      setServerError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
