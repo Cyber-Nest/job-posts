@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
-import { connectDB } from "@/lib/db/mongoose";
-import { Admin } from "@/lib/models/Admin";
-import { encryptPassword, decryptPassword } from "./crypto";
+export { encryptPassword, decryptPassword } from "./crypto";
+
 const ADMIN_TOKEN_NAME = "admin_token";
+const ADMIN_TOKEN_EXPIRY_MS = 60 * 60 * 24 * 1000; // 1 day in milliseconds
 
 /**
  * Encode a string to base64url
@@ -15,7 +15,6 @@ function toBase64url(str: string): string {
     .replace(/=+$/, "");
 }
 
-
 async function hmacSign(data: string, secret: string): Promise<string> {
   const { createHmac } = await import("crypto");
   return createHmac("sha256", secret).update(data).digest("base64url");
@@ -24,11 +23,8 @@ async function hmacSign(data: string, secret: string): Promise<string> {
 /**
  * Generate admin token
  */
-const ADMIN_TOKEN_EXPIRY_MS = 60 * 60 * 24 * 1000; // 1 day in milliseconds
-
 export async function generateAdminToken(email: string): Promise<string> {
-  const secret =
-    process.env.ADMIN_JWT_SECRET || "admin-secret-fallback";
+  const secret = process.env.ADMIN_JWT_SECRET || "admin-secret-fallback";
   const payload = toBase64url(JSON.stringify({ email, ts: Date.now() }));
   const sig = await hmacSign(payload, secret);
   return `${payload}.${sig}`;
@@ -41,8 +37,7 @@ export async function verifyAdminToken(
   token: string,
 ): Promise<{ email: string } | null> {
   try {
-    const secret =
-      process.env.ADMIN_JWT_SECRET || "admin-secret-fallback";
+    const secret = process.env.ADMIN_JWT_SECRET || "admin-secret-fallback";
     const [payload, sig] = token.split(".");
     if (!payload || !sig) return null;
 
@@ -58,10 +53,7 @@ export async function verifyAdminToken(
       return null;
     }
 
-    // Verify against DB
-    await connectDB();
-    const admin = await Admin.findOne({ email: decoded.email.toLowerCase() });
-    if (!admin) return null;
+    if (!decoded.email) return null;
 
     return { email: decoded.email };
   } catch {
@@ -81,4 +73,3 @@ export async function requireAdmin(
 }
 
 export { ADMIN_TOKEN_NAME };
-
