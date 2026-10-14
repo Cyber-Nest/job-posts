@@ -356,6 +356,7 @@ export async function loginHandler(req, res, next) {
       email: userDoc.email,
       name: userDoc.name,
       role: userDoc.role || "employer",
+      accountType: userDoc.accountType || userDoc.role || "employer",
     };
 
     return res.status(200).json({
@@ -402,6 +403,7 @@ export async function getSessionHandler(req, res, next) {
     if (typeof sessionDoc.userId === "string" && mongoose.Types.ObjectId.isValid(sessionDoc.userId)) {
       userQuery = { $or: [{ _id: sessionDoc.userId }, { _id: new mongoose.Types.ObjectId(sessionDoc.userId) }] };
     }
+
     const userDoc = await userCollection.findOne(userQuery);
 
     if (!userDoc) {
@@ -413,6 +415,7 @@ export async function getSessionHandler(req, res, next) {
       email: userDoc.email,
       name: userDoc.name,
       role: userDoc.role || "employer",
+      accountType: userDoc.accountType || userDoc.role || "employer",
     };
 
     return res.status(200).json({

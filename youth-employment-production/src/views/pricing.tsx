@@ -15,6 +15,8 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth/auth-client";
+import { apiClient } from "@/lib/api-client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -183,7 +185,7 @@ const faqs = [
 
 export default function PricingPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { user, isAuthenticated, isPending } = useSession();
   const [loadingPackage, setLoadingPackage] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
@@ -197,25 +199,13 @@ export default function PricingPage() {
   const [selectedPkg, setSelectedPkg] = useState<any | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me", {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data.user || null);
-      })
-      .catch(() => {
-        setUser(null);
-      });
-  }, []);
-
-  useEffect(() => {
     let active = true;
-    fetch(`/api/packages?t=${Date.now()}`, { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (active && data.success && data.packages && data.packages.length > 0) {
-          const mapped = data.packages.map((pkg: any) => ({
+    apiClient
+      .get(`/packages?t=${Date.now()}`)
+      .then((data: any) => {
+        const list = data.packages || data.data || [];
+        if (active && data.success && list.length > 0) {
+          const mapped = list.map((pkg: any) => ({
             ...pkg,
             icon: ICON_MAP[pkg.name] || Star,
             cta: "Select Package",
@@ -223,7 +213,7 @@ export default function PricingPage() {
           setPackagesList(mapped);
         }
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Failed to fetch packages:", err);
       });
     return () => {
@@ -231,15 +221,23 @@ export default function PricingPage() {
     };
   }, []);
 
-  //initial check before opening modal
+  // Initial check before opening modal
   const handleInitiatePurchase = (pkg: any) => {
-    if (!user) {
+    if (isPending) return;
+
+    if (!isAuthenticated || !user) {
       toast.error("Please log in to purchase a package.");
       router.push("/login");
       return;
     }
 
-    if (user.accountType !== "employer") {
+    const isEmployer =
+      !user.role ||
+      user.role === "employer" ||
+      user.role === "admin" ||
+      user.accountType === "employer";
+
+    if (!isEmployer) {
       toast.error("Only employer accounts can purchase packages.");
       return;
     }
@@ -252,41 +250,34 @@ export default function PricingPage() {
   };
 
   const handleApplyPromo = async () => {
-    if (!selectedPkg || !promoCode) return;
+    if (!selectedPkg || !promoCode.trim()) return;
 
     try {
       setPromoLoading(true);
       setPromoError("");
 
-      const response = await fetch("/api/promo/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: promoCode,
-          packageName: selectedPkg.name,
-        }),
+      const res = await apiClient.post("/payments/create-checkout-session", {
+        packageName: selectedPkg.name,
+        promoCode: promoCode.trim(),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Invalid promo code");
+      if (res.freePromo || res.success) {
+        setPromoApplied(true);
+        setFinalPrice(0);
+        toast.success("Promo code applied! Package is now free 🎉");
+      } else {
+        throw new Error(res.error || "Invalid promo code");
       }
-
-      setPromoApplied(true);
-      setFinalPrice(0);
-      toast.success("Promo code applied! Package is now free 🎉");
     } catch (error: any) {
       setPromoApplied(false);
       setFinalPrice(null);
-      setPromoError(error.message);
+      setPromoError(error.message || "Invalid promo code");
       toast.error(error.message || "Invalid promo code.");
     } finally {
       setPromoLoading(false);
     }
   };
 
-  
   const handleConfirmPurchase = async () => {
     if (!selectedPkg) return;
 
@@ -296,21 +287,13 @@ export default function PricingPage() {
       setLoadingPackage(packageName);
 
       // FREE PROMO FLOW
-      if (finalPrice === 0) {
-        const response = await fetch("/api/employer/package/purchase", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ packageName, promoCode }),
+      if (promoApplied || finalPrice === 0) {
+        const data = await apiClient.post("/promo/verify", {
+          packageName,
+          promoCode: promoCode.trim(),
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to activate package");
-        }
-
-        toast.success(`${packageName} package activated successfully! 🎉`);
+        toast.success(data.message || `${packageName} package activated successfully! 🎉`);
         setSelectedPkg(null);
         router.push("/dashboard");
         return;
@@ -319,24 +302,11 @@ export default function PricingPage() {
       // STRIPE FLOW
       const toastId = toast.loading("Redirecting to secure checkout...");
 
-      const response = await fetch("/api/stripe/create-checkout-session", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          packageName,
-          promoCode: promoApplied ? promoCode : null,
-        }),
+      const data = await apiClient.post("/payments/create-checkout-session", {
+        packageName,
+        promoCode: null,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        toast.dismiss(toastId);
-        throw new Error(data.error || "Failed to start payment");
-      }
-
-      // REDIRECT TO STRIPE
       if (data.checkoutUrl) {
         toast.success("Redirecting to Stripe checkout...", { id: toastId });
         window.location.href = data.checkoutUrl;

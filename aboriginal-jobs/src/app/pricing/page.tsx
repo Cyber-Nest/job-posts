@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/auth-client";
+import { apiClient } from "@/lib/api-client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -135,15 +136,8 @@ export default function PricingPage() {
   } = useQuery({
     queryKey: ["packages"],
     queryFn: async () => {
-      const res = await fetch(`/api/packages?_t=${Date.now()}`, {
-        cache: "no-store",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch packages");
-      }
-
-      return res.json();
+      const data = await apiClient.get(`/packages?_t=${Date.now()}`);
+      return data;
     },
 
     staleTime: 0,
@@ -152,7 +146,7 @@ export default function PricingPage() {
   });
 
   const pkgList = useMemo(() => {
-    const packages = packagesResponse?.packages || [];
+    const packages = packagesResponse?.packages || packagesResponse?.data || [];
 
     return packages.map((p: PkgData) => ({
       ...p,
@@ -205,25 +199,17 @@ export default function PricingPage() {
       setPromoLoading(true);
       setPromoError("");
 
-      const response = await fetch("/api/promo/check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          packageName: selectedPkg.name,
-          promoCode,
-        }),
+      const res = await apiClient.post("/payments/create-checkout-session", {
+        packageName: selectedPkg.name,
+        promoCode: promoCode.trim(),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Invalid promo code");
+      if (res.freePromo || res.success) {
+        setPromoApplied(true);
+        toast.success("Promo code applied successfully.");
+      } else {
+        throw new Error(res.error || "Invalid promo code");
       }
-
-      setPromoApplied(true);
-      toast.success("Promo code applied successfully.");
     } catch (error: any) {
       setPromoApplied(false);
       setPromoError(error.message || "Something went wrong");
@@ -240,25 +226,13 @@ export default function PricingPage() {
       setLoadingPackage(selectedPkg.name);
 
       const endpoint = promoApplied
-        ? "/api/promo/verify"
-        : "/api/stripe/create-checkout-session";
+        ? "/promo/verify"
+        : "/payments/create-checkout-session";
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          packageName: selectedPkg.name,
-          promoCode: promoApplied ? promoCode : null,
-        }),
+      const data = await apiClient.post(endpoint, {
+        packageName: selectedPkg.name,
+        promoCode: promoApplied ? promoCode.trim() : null,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to process request");
-      }
 
       // PROMO FLOW
       if (promoApplied) {

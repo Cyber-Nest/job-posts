@@ -97,6 +97,30 @@ export default function CouponManagementPage() {
   const [assignLoading, setAssignLoading] = useState(false);
   const [assignError, setAssignError] = useState("");
   const [exportLoading, setExportLoading] = useState(false);
+  const [seedLoading, setSeedLoading] = useState(false);
+
+  const handleSeedCoupons = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to generate 500 coupons (100 for each of the 5 packages)?"
+      )
+    )
+      return;
+    setSeedLoading(true);
+    try {
+      const data = await apiClient.post("/admin/coupons/seed");
+      if (data.success) {
+        alert(data.message || "Successfully generated 500 coupons!");
+        await fetchStats();
+      } else {
+        alert(data.error || "Failed to generate coupons");
+      }
+    } catch (e: any) {
+      alert(e?.message || "Failed to generate coupons");
+    } finally {
+      setSeedLoading(false);
+    }
+  };
 
   // ─── Fetch Stats ───────────────────────────────────────────────────────────
 
@@ -276,6 +300,28 @@ export default function CouponManagementPage() {
           >
             <RefreshCw size={16} className={statsLoading ? "animate-spin text-emerald-600" : ""} />
           </button>
+
+          {/* Seed Button if empty */}
+          {Array.isArray(stats) &&
+            stats.reduce((acc, s) => acc + (s.total || 0), 0) === 0 && (
+              <button
+                onClick={handleSeedCoupons}
+                disabled={seedLoading}
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-sm"
+              >
+                {seedLoading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Ticket size={15} />
+                    Generate 500 Coupons (100 per plan)
+                  </>
+                )}
+              </button>
+            )}
 
           {/* Export Button */}
           {selectedPackage && (

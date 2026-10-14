@@ -21,9 +21,19 @@ export async function verifyPromoCodeHandler(req, res, next) {
       return res.status(400).json({ success: false, error: "Invalid package selected." });
     }
 
-    const employer = await Employer.findOne({ authUserId: req.user.id });
+    let employer = await Employer.findOne({
+      $or: [
+        { authUserId: String(req.user.id) },
+        { authUserId: req.user.id },
+        { email: req.user.email?.toLowerCase().trim() },
+      ],
+    });
     if (!employer) {
-      return res.status(404).json({ success: false, error: "Employer not found." });
+      employer = await Employer.create({
+        authUserId: String(req.user.id),
+        orgName: req.user.name || "Employer",
+        email: req.user.email,
+      });
     }
 
     const existingCoupon = await PromoCode.findOne({
@@ -32,21 +42,26 @@ export async function verifyPromoCodeHandler(req, res, next) {
       status: "Unused",
     });
 
-    if (!existingCoupon || !existingCoupon.assignedEmail) {
+    if (!existingCoupon) {
       return res.status(400).json({ success: false, error: "Invalid coupon code or coupon has already been used." });
+    }
+
+    if (existingCoupon.assignedEmail && existingCoupon.assignedEmail.toLowerCase() !== req.user.email.toLowerCase()) {
+      return res.status(400).json({ success: false, error: "This coupon code is assigned to a different email address." });
     }
 
     // Atomic Redemption
     const redeemedCoupon = await PromoCode.findOneAndUpdate(
       {
-        code: cleanCode,
-        packageName: cleanPackage,
+        _id: existingCoupon._id,
         status: "Unused",
-        assignedEmail: { $ne: null },
       },
       {
         $set: {
           status: "Used",
+          assignedName: existingCoupon.assignedName || req.user.name || req.user.email,
+          assignedEmail: existingCoupon.assignedEmail || req.user.email,
+          assignedAt: existingCoupon.assignedAt || new Date(),
           redeemedName: req.user.name || req.user.email,
           redeemedEmail: req.user.email,
           redeemedAt: new Date(),
@@ -132,3 +147,40 @@ export async function verifyPromoCodeHandler(req, res, next) {
     next(error);
   }
 }
+
+export async function checkPromoCodeHandler(req, res, next) {
+  try {
+    const packageName = req.body.packageName;
+    const promoCode = req.body.promoCode || req.body.code;
+
+    if (!packageName || !promoCode) {
+      return res.status(400).json({ success: false, error: "Package and coupon code are required." });
+    }
+
+    const cleanPackage = packageName.trim();
+    const cleanCode = promoCode.trim().toUpperCase();
+
+    const existingCoupon = await PromoCode.findOne({
+      code: cleanCode,
+      packageName: cleanPackage,
+      status: "Unused",
+    });
+
+    if (!existingCoupon) {
+      return res.status(400).json({ success: false, error: "Invalid coupon code or coupon has already been used." });
+    }
+
+    if (existingCoupon.assignedEmail && req.user?.email && existingCoupon.assignedEmail.toLowerCase() !== req.user.email.toLowerCase()) {
+      return res.status(400).json({ success: false, error: "This coupon code is assigned to a different email address." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      valid: true,
+      message: "Promo code is valid and ready to apply.",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+

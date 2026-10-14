@@ -33,9 +33,19 @@ export async function createCheckoutSessionHandler(req, res, next) {
 
     const amount = dbPackage ? dbPackage.discountedPrice : selectedPackage.amount;
 
-    const employer = await Employer.findOne({ authUserId: req.user.id });
+    let employer = await Employer.findOne({
+      $or: [
+        { authUserId: String(req.user.id) },
+        { authUserId: req.user.id },
+        { email: req.user.email?.toLowerCase().trim() },
+      ],
+    });
     if (!employer) {
-      return res.status(404).json({ success: false, error: "Employer profile not found." });
+      employer = await Employer.create({
+        authUserId: String(req.user.id),
+        orgName: req.user.name || "Employer",
+        email: req.user.email,
+      });
     }
 
     if (promoCode?.trim()) {
@@ -69,7 +79,7 @@ export async function createCheckoutSessionHandler(req, res, next) {
       isPromoPayment: false,
     });
 
-    const clientUrl = env.CLIENT_URL;
+    const clientUrl = req.headers.origin || env.CLIENT_URL || "http://localhost:3000";
 
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
