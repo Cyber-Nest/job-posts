@@ -302,7 +302,7 @@ export default function CouponManagementPage() {
           </button>
 
           {/* Seed Button if empty */}
-          {Array.isArray(stats) &&
+          {/* {Array.isArray(stats) &&
             stats.reduce((acc, s) => acc + (s.total || 0), 0) === 0 && (
               <button
                 onClick={handleSeedCoupons}
@@ -321,7 +321,7 @@ export default function CouponManagementPage() {
                   </>
                 )}
               </button>
-            )}
+            )} */}
 
           {/* Export Button */}
           {selectedPackage && (

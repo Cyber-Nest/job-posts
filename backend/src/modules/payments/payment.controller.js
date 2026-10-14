@@ -81,10 +81,8 @@ export async function createCheckoutSessionHandler(req, res, next) {
 
     const clientUrl = req.headers.origin || env.CLIENT_URL || "http://localhost:3000";
 
-    const checkoutSession = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
+    const sessionParams = {
       mode: "payment",
-      customer_email: req.user.email,
       line_items: [
         {
           price_data: {
@@ -104,7 +102,13 @@ export async function createCheckoutSessionHandler(req, res, next) {
       },
       success_url: `${clientUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${clientUrl}/payment/cancel`,
-    });
+    };
+
+    if (req.user?.email) {
+      sessionParams.customer_email = req.user.email;
+    }
+
+    const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
 
     await PaymentTransaction.findByIdAndUpdate(payment._id, {
       stripeSessionId: checkoutSession.id,

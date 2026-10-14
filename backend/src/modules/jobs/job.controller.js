@@ -51,6 +51,7 @@ export async function getJobByIdHandler(req, res, next) {
     const formattedJob = {
       ...job,
       id: job._id,
+      jobId: job.jobId || null,
       jobUniqueId: job.jobId || null,
       salary: job.salary ? String(job.salary).trim() : "",
       salaryPeriod,

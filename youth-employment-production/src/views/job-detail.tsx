@@ -375,10 +375,10 @@ export default function JobDetailPage() {
                     <Clock size={13} className="text-blue-500" />
                     {`Posted on ${formatJobDate(job.jobPostingDate || (job as any).postDate || (job as any).postedAt || (job as any).createdAt)}`}
                   </span>
-                  {job.jobUniqueId && (
+                  {(job.jobId || job.jobUniqueId) && (
                     <span className="inline-flex items-center gap-2 text-sm text-gray-600 bg-white border border-blue-200 rounded-full px-4 py-1.5">
                       <CheckCircle size={13} className="text-blue-500" />
-                      Job ID: {job.jobUniqueId}
+                      Job ID: {job.jobId || job.jobUniqueId}
                     </span>
                   )}
                   {job.salary && (

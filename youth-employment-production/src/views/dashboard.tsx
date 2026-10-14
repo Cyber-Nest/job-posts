@@ -134,7 +134,8 @@ interface Job {
   jobType: string;
   id: string;
   _id?: string;
-  jobUniqueId: string;
+  jobId?: string;
+  jobUniqueId?: string;
   title: string;
   company: string;
   location: string;
@@ -148,6 +149,8 @@ interface Job {
   updatedAt?: string;
   salary?: string;
   salaryPeriod?: string;
+  vacancies?: number;
+  remote?: boolean;
 }
 
 // ============ HELPERS ============
@@ -232,9 +235,14 @@ export default function DashboardPage() {
     const fetchJobs = async () => {
       try {
         const data = await apiClient.get("/employer/jobs");
-        if (data.jobs || data.data) {
-          setJobs(data.jobs || data.data || []);
-        }
+        const rawJobs = data.jobs || data.data || [];
+        const normalized = rawJobs.map((j: any) => ({
+          ...j,
+          id: String(j._id || j.id || j.jobId),
+          _id: String(j._id || j.id),
+          jobId: j.jobId || j.jobUniqueId || (j._id ? String(j._id).slice(-6).toUpperCase() : ""),
+        }));
+        setJobs(normalized);
       } catch (err) {
         console.error("Failed to fetch jobs:", err);
       } finally {
@@ -544,13 +552,26 @@ export default function DashboardPage() {
 
                           {/* Tags Section */}
                           <div className="flex flex-wrap items-center gap-1.5 mb-6">
-                            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold tracking-wider text-blue-700 bg-blue-50/80 border border-blue-100 px-2 py-0.5 rounded-md uppercase">
-                              JOB-ID
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md tracking-wide">
-                              #
-                              {job.id?.slice(-5).toUpperCase() || "REQUISITION"}
-                            </span>
+                            {(job.jobId || (job as any).jobUniqueId || job.id) && (
+                              <>
+                                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold tracking-wider text-blue-700 bg-blue-50/80 border border-blue-100 px-2 py-0.5 rounded-md uppercase">
+                                  JOB-ID
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md tracking-wide font-mono">
+                                  #{job.jobId || (job as any).jobUniqueId || (job.id?.length === 24 ? job.id.slice(-6).toUpperCase() : job.id)}
+                                </span>
+                              </>
+                            )}
+                            {typeof job.vacancies === "number" && job.vacancies > 0 && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md">
+                                Vacancies: {job.vacancies}
+                              </span>
+                            )}
+                            {job.remote && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                                Remote
+                              </span>
+                            )}
                           </div>
                         </div>
 

@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { useSession, signOut } from "@/lib/auth/auth-client";
+import { apiClient } from "@/lib/api-client";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -103,12 +104,10 @@ export default function Header() {
   // CHECK EMPLOYER
   useEffect(() => {
     if (isAuthenticated && user?.email) {
-      fetch(`/api/employer/check?email=${user.email}`)
-        .then((res) => res.json())
-
-        .then((data) => setIsEmployer(data.isEmployer))
-
-        .catch(() => setIsEmployer(false));
+      apiClient
+        .get("/employer/check", { params: { email: user.email } })
+        .then((data: any) => setIsEmployer(data?.isEmployer ?? true))
+        .catch(() => setIsEmployer(true));
     }
   }, [isAuthenticated, user]);
 
@@ -117,12 +116,8 @@ export default function Header() {
     const fetchPackage = async () => {
       try {
         setPackageLoading(true);
-
-        const res = await fetch("/api/employer/package");
-
-        const data = await res.json();
-
-        if (data.success) {
+        const data = await apiClient.get("/employer/package");
+        if (data?.success && data?.package) {
           setPackageData(data.package);
         }
       } catch (error) {
@@ -132,7 +127,7 @@ export default function Header() {
       }
     };
 
-    if (isAuthenticated && isEmployer) {
+    if (isAuthenticated) {
       fetchPackage();
     }
   }, [isAuthenticated, isEmployer]);
@@ -244,16 +239,14 @@ export default function Header() {
                     </div>
 
                     {/* Dashboard Link */}
-                    {isEmployer && (
-                      <Link
-                        href="/employers/dashboard"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#6B3A2A] hover:bg-[#C8782A]/5 hover:text-[#C8782A] transition-colors"
-                      >
-                        <LayoutDashboard size={14} />
-                        Dashboard
-                      </Link>
-                    )}
+                    <Link
+                      href="/employers/dashboard"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-[#6B3A2A] hover:bg-[#C8782A]/10 hover:text-[#C8782A] transition-colors"
+                    >
+                      <LayoutDashboard size={15} />
+                      Employer Dashboard
+                    </Link>
 
                     <button
                       onClick={async () => {
@@ -343,14 +336,15 @@ export default function Header() {
             })}
 
             {/* Dashboard Link */}
-            {isAuthenticated && isEmployer && (
+            {isAuthenticated && (
               <Link
                 href="/employers/dashboard"
                 prefetch={false}
+                onClick={() => setMenuOpen(false)}
                 className="px-4 py-3 rounded-lg text-sm font-medium text-[#6B3A2A] hover:bg-[#C8782A]/10 hover:text-[#C8782A] flex items-center gap-2"
               >
                 <LayoutDashboard size={16} />
-                Dashboard
+                Employer Dashboard
               </Link>
             )}
 

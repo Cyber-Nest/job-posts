@@ -190,10 +190,16 @@ export async function getEmployerJobsHandler(req, res, next) {
       ];
     }
 
-    const [jobs, total] = await Promise.all([
-      Job.find(query).sort({ postedAt: -1 }).skip(skip).limit(limit),
+    const [rawJobs, total] = await Promise.all([
+      Job.find(query).sort({ postedAt: -1 }).skip(skip).limit(limit).lean(),
       Job.countDocuments(query),
     ]);
+
+    const jobs = rawJobs.map((j) => ({
+      ...j,
+      id: String(j._id),
+      jobId: j.jobId || String(j._id).slice(-6).toUpperCase(),
+    }));
 
     return res.status(200).json({
       success: true,
