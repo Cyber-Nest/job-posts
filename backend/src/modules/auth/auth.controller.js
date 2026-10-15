@@ -211,9 +211,11 @@ export async function registerEmployerHandler(req, res, next) {
       updatedAt: new Date(),
     });
 
+    const isProd = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
     res.cookie("better-auth.session_token", sessionToken, {
       httpOnly: false,
-      sameSite: "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       expires: expiresAt,
       path: "/",
     });
@@ -359,9 +361,11 @@ export async function loginHandler(req, res, next) {
       updatedAt: new Date(),
     });
 
+    const isProd = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
     res.cookie("better-auth.session_token", sessionToken, {
       httpOnly: false,
-      sameSite: "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       expires: expiresAt,
       path: "/",
     });

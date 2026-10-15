@@ -18,9 +18,14 @@ export interface SignUpFn {
 const baseSignIn = async function ({ email, password }: any) {
   try {
     const data = await apiClient.post("/auth/login", { email, password });
-    if (data?.session?.token && typeof window !== "undefined") {
-      localStorage.setItem("session_token", data.session.token);
-      document.cookie = `better-auth.session_token=${encodeURIComponent(data.session.token)}; path=/; max-age=2592000; SameSite=Lax`;
+    const token = data?.session?.token || data?.token;
+    if (token && typeof window !== "undefined") {
+      localStorage.setItem("session_token", token);
+      localStorage.setItem("better-auth.session_token", token);
+      if (data?.user) {
+        localStorage.setItem("session_user", JSON.stringify(data.user));
+      }
+      document.cookie = `better-auth.session_token=${encodeURIComponent(token)}; path=/; max-age=2592000; SameSite=Lax`;
     }
     return { data, error: null };
   } catch (err: any) {
@@ -49,9 +54,14 @@ export const signIn: SignInFn = Object.assign(baseSignIn, {
 const baseSignUp = async function (data: any) {
   try {
     const responseData = await apiClient.post("/auth/register-employer", data);
-    if (responseData?.session?.token && typeof window !== "undefined") {
-      localStorage.setItem("session_token", responseData.session.token);
-      document.cookie = `better-auth.session_token=${encodeURIComponent(responseData.session.token)}; path=/; max-age=2592000; SameSite=Lax`;
+    const token = responseData?.session?.token || responseData?.token;
+    if (token && typeof window !== "undefined") {
+      localStorage.setItem("session_token", token);
+      localStorage.setItem("better-auth.session_token", token);
+      if (responseData?.user) {
+        localStorage.setItem("session_user", JSON.stringify(responseData.user));
+      }
+      document.cookie = `better-auth.session_token=${encodeURIComponent(token)}; path=/; max-age=2592000; SameSite=Lax`;
     }
     return { data: responseData, error: null };
   } catch (err: any) {
@@ -70,6 +80,8 @@ export const signUp: SignUpFn = Object.assign(baseSignUp, {
 export async function signOut() {
   if (typeof window !== "undefined") {
     localStorage.removeItem("session_token");
+    localStorage.removeItem("better-auth.session_token");
+    localStorage.removeItem("session_user");
     document.cookie = "better-auth.session_token=; path=/; max-age=0; SameSite=Lax";
   }
   return apiClient.post("/auth/logout");
@@ -79,11 +91,32 @@ export async function signOut() {
  * Custom Session Hook connected to Express Backend (/auth/session)
  */
 export function useSession() {
-  const [sessionData, setSessionData] = useState<any>({
-    session: null,
-    user: null,
-    isPending: true,
-    error: null,
+  const [sessionData, setSessionData] = useState<any>(() => {
+    if (typeof window !== "undefined") {
+      const storedToken =
+        localStorage.getItem("session_token") ||
+        localStorage.getItem("better-auth.session_token");
+      const storedUser = localStorage.getItem("session_user");
+      if (storedToken && storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          return {
+            session: { token: storedToken, user: parsedUser },
+            user: parsedUser,
+            isPending: false,
+            error: null,
+          };
+        } catch {
+          // ignore parsing error
+        }
+      }
+    }
+    return {
+      session: null,
+      user: null,
+      isPending: true,
+      error: null,
+    };
   });
 
   useEffect(() => {
@@ -96,6 +129,12 @@ export function useSession() {
           const activeSession = res?.session
             ? { ...res.session, user: activeUser }
             : null;
+
+          if (activeUser && typeof window !== "undefined") {
+            localStorage.setItem("session_user", JSON.stringify(activeUser));
+          } else if (!activeUser && typeof window !== "undefined") {
+            localStorage.removeItem("session_user");
+          }
 
           setSessionData({
             session: activeSession,

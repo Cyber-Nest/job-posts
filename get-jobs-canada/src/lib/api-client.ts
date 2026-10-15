@@ -33,10 +33,15 @@ async function request<T = any>(
     }
   }
 
-  const isFormData = data instanceof FormData;
+  const isAdminRequest =
+    endpoint.startsWith("/admin") || endpoint.includes("/admin/");
   const token =
     typeof window !== "undefined"
-      ? localStorage.getItem("admin_token") || localStorage.getItem("session_token")
+      ? isAdminRequest
+        ? localStorage.getItem("admin_token") ||
+          localStorage.getItem("session_token")
+        : localStorage.getItem("session_token") ||
+          localStorage.getItem("better-auth.session_token")
       : null;
 
   const requestHeaders: Record<string, string> = {

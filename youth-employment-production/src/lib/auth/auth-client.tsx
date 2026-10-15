@@ -102,6 +102,10 @@ export async function loginWithIdentifier(identifier: string, password: string) 
     const token = result.session?.token || result.token;
     if (token && typeof window !== 'undefined') {
       localStorage.setItem('session_token', token);
+      localStorage.setItem('better-auth.session_token', token);
+      if (result.user) {
+        localStorage.setItem('session_user', JSON.stringify(result.user));
+      }
       document.cookie = `better-auth.session_token=${encodeURIComponent(token)}; path=/; max-age=2592000; SameSite=Lax`;
     }
     updateAuthState({ user: result.user ?? null, error: null });
@@ -125,6 +129,8 @@ export async function logout() {
     const data = await apiClient.post('/auth/logout');
     if (typeof window !== 'undefined') {
       localStorage.removeItem('session_token');
+      localStorage.removeItem('better-auth.session_token');
+      localStorage.removeItem('session_user');
       document.cookie = 'better-auth.session_token=; path=/; max-age=0; SameSite=Lax';
     }
     updateAuthState({ user: null, error: null });
