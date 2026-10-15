@@ -41,10 +41,11 @@ export async function adminLoginHandler(req, res, next) {
 
     const token = await generateAdminToken(admin.email);
 
+    const isProd = env.NODE_ENV === "production";
     res.cookie("admin_token", token, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -61,7 +62,12 @@ export async function adminLoginHandler(req, res, next) {
 }
 
 export async function adminLogoutHandler(req, res) {
-  res.clearCookie("admin_token");
+  const isProd = env.NODE_ENV === "production";
+  res.clearCookie("admin_token", {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+  });
   return res.status(200).json({ success: true, message: "Logged out successfully." });
 }
 
@@ -165,10 +171,11 @@ export async function adminChangeConfirmHandler(req, res, next) {
 
     // Re-issue new token if email changed
     const newToken = await generateAdminToken(admin.email);
+    const isProd = env.NODE_ENV === "production";
     res.cookie("admin_token", newToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 

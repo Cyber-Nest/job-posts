@@ -25,7 +25,10 @@ export async function connectDB() {
     return mongoose.connection;
   } catch (error) {
     logger.error("[Database] MongoDB Connection Error:", { error: error.message, stack: error.stack });
-    process.exit(1);
+    if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+      process.exit(1);
+    }
+    throw error;
   }
 }
 

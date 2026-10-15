@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
+import { connectDB } from "./config/db.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { logger } from "./utils/logger.js";
 
@@ -67,7 +68,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Health check endpoint
+// Database auto-reconnect middleware (vital for Serverless / Vercel cold starts)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    logger.error("[Database Middleware] DB connection failed:", err);
+    res.status(500).json({ success: false, error: "Database connection failed." });
+  }
+});
+
+// Root & Health check endpoints
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "Jobs Post API Backend",
+    health: "/health",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
