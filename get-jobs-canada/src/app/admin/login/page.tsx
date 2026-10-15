@@ -23,9 +23,17 @@ export default function AdminLoginPage() {
       setLoading(true);
       setError("");
 
-      await apiClient.post("/admin/auth/login", { email, password });
+      const res = await apiClient.post("/admin/auth/login", { email, password });
 
-      router.push("/admin/coupons");
+      if (res && res.token) {
+        // Set cookie on current domain so Next.js middleware allows access
+        const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+        document.cookie = `admin_token=${res.token}; path=/; max-age=86400; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+        localStorage.setItem("admin_token", res.token);
+        localStorage.setItem("session_token", res.token);
+      }
+
+      window.location.href = "/admin/coupons";
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

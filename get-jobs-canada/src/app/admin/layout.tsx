@@ -37,7 +37,10 @@ export default function AdminLayout({
     try {
       await apiClient.post("/admin/auth/logout");
     } catch (err) {}
-    router.push("/admin/login");
+    document.cookie = "admin_token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("session_token");
+    window.location.href = "/admin/login";
   };
 
   // Login page → no sidebar, no topbar

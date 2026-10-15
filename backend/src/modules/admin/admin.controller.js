@@ -72,7 +72,7 @@ export async function adminLogoutHandler(req, res) {
 }
 
 export async function getAdminMeHandler(req, res) {
-  return res.status(200).json({ success: true, admin: req.admin });
+  return res.status(200).json({ success: true, admin: req.admin, email: req.admin?.email });
 }
 
 export async function getAdminCredentialsHandler(req, res, next) {

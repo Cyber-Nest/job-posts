@@ -36,7 +36,7 @@ async function request<T = any>(
   const isFormData = data instanceof FormData;
   const token =
     typeof window !== "undefined"
-      ? localStorage.getItem("session_token")
+      ? localStorage.getItem("admin_token") || localStorage.getItem("session_token")
       : null;
 
   const requestHeaders: Record<string, string> = {
