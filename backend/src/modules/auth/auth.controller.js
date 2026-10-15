@@ -250,31 +250,46 @@ export async function registerEmployerHandler(req, res, next) {
  */
 export async function loginHandler(req, res, next) {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: "Email and password are required" });
+    const { email, password, identifier } = req.body;
+    const inputId = email || identifier;
+    if (!inputId || !password) {
+      return res.status(400).json({ success: false, error: "Email or username and password are required" });
     }
 
-    const cleanEmail = email.toLowerCase().trim();
+    const cleanIdentifier = inputId.toLowerCase().trim();
     const db = mongoose.connection.db;
     const userCollection = db.collection("user");
 
-    const userDoc = await userCollection.findOne({ email: cleanEmail });
+    const userDoc = await userCollection.findOne({
+      $or: [
+        { email: cleanIdentifier },
+        { username: cleanIdentifier },
+      ],
+    });
     if (!userDoc) {
       return res.status(401).json({ success: false, error: "Invalid email or password" });
     }
 
+    const cleanEmail = (userDoc.email || cleanIdentifier).toLowerCase().trim();
+
     let passwordHash = userDoc.password;
     if (!passwordHash) {
-      // Fallback: Check 'account' collection from existing auth data
-      const accountCollection = db.collection("account");
-      const accountDoc = await accountCollection.findOne({
-        $or: [
-          { userId: userDoc._id },
-          { userId: String(userDoc._id) },
-          { providerAccountId: cleanEmail },
-        ],
-      });
+      // Fallback: Check 'account' or 'accounts' collection from existing auth data
+      const accountDoc =
+        (await db.collection("account").findOne({
+          $or: [
+            { userId: userDoc._id },
+            { userId: String(userDoc._id) },
+            { providerAccountId: cleanEmail },
+          ],
+        })) ||
+        (await db.collection("accounts").findOne({
+          $or: [
+            { userId: userDoc._id },
+            { userId: String(userDoc._id) },
+            { providerAccountId: cleanEmail },
+          ],
+        }));
       if (accountDoc && accountDoc.password) {
         passwordHash = accountDoc.password;
       }
@@ -464,19 +479,23 @@ export async function logoutHandler(req, res, next) {
  */
 export async function forgotPasswordSendOtpHandler(req, res, next) {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ success: false, error: "Email is required" });
+    const { email, identifier } = req.body;
+    const inputId = email || identifier;
+    if (!inputId) {
+      return res.status(400).json({ success: false, error: "Email or username is required" });
     }
 
-    const cleanEmail = email.toLowerCase().trim();
+    const cleanIdentifier = inputId.toLowerCase().trim();
     const db = mongoose.connection.db;
-    const userDoc = await db.collection("user").findOne({ email: cleanEmail });
+    const userDoc = await db.collection("user").findOne({
+      $or: [{ email: cleanIdentifier }, { username: cleanIdentifier }],
+    });
 
     if (!userDoc) {
       return res.status(404).json({ success: false, error: "No account found with this email address" });
     }
 
+    const cleanEmail = (userDoc.email || cleanIdentifier).toLowerCase().trim();
     const otpCode = crypto.randomInt(100000, 1000000).toString();
     const verificationCollection = db.collection("verification");
 
@@ -499,6 +518,7 @@ export async function forgotPasswordSendOtpHandler(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Verification code sent to your email",
+      _devOtp: process.env.NODE_ENV !== "production" ? otpCode : undefined,
     });
   } catch (error) {
     next(error);
@@ -509,21 +529,20 @@ export async function forgotPasswordSendOtpHandler(req, res, next) {
  * POST /api/v1/auth/forgot-password/verify-otp
  */
 export async function forgotPasswordVerifyOtpHandler(req, res, next) {
-  return verifyOtpHandler(req, res, next);
-}
-
-/**
- * POST /api/v1/auth/forgot-password/reset
- */
-export async function forgotPasswordResetHandler(req, res, next) {
   try {
-    const { email, otp, newPassword } = req.body;
-    if (!email || !otp || !newPassword) {
-      return res.status(400).json({ success: false, error: "Email, OTP, and new password are required" });
+    const { email, identifier, otp } = req.body;
+    const inputId = email || identifier;
+    if (!inputId || !otp) {
+      return res.status(400).json({ success: false, error: "Email and verification code are required" });
     }
 
-    const cleanEmail = email.toLowerCase().trim();
+    const cleanIdentifier = inputId.toLowerCase().trim();
     const db = mongoose.connection.db;
+    const userDoc = await db.collection("user").findOne({
+      $or: [{ email: cleanIdentifier }, { username: cleanIdentifier }],
+    });
+
+    const cleanEmail = (userDoc?.email || cleanIdentifier).toLowerCase().trim();
     const verificationCollection = db.collection("verification");
 
     const record = await verificationCollection.findOne({
@@ -535,9 +554,90 @@ export async function forgotPasswordResetHandler(req, res, next) {
       return res.status(400).json({ success: false, error: "Invalid or expired verification code" });
     }
 
-    const hashedPassword = hashPasswordSync(newPassword);
+    await verificationCollection.updateOne(
+      { _id: record._id },
+      { $set: { verified: true } }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/v1/auth/forgot-password/reset
+ */
+export async function forgotPasswordResetHandler(req, res, next) {
+  try {
+    const { email, identifier, otp, newPassword, confirmPassword } = req.body;
+    const inputId = email || identifier;
+    const finalPassword = newPassword || confirmPassword;
+    if (!inputId || !finalPassword) {
+      return res.status(400).json({ success: false, error: "Email and new password are required" });
+    }
+
+    const cleanIdentifier = inputId.toLowerCase().trim();
+    const db = mongoose.connection.db;
+    const userDoc = await db.collection("user").findOne({
+      $or: [{ email: cleanIdentifier }, { username: cleanIdentifier }],
+    });
+
+    if (!userDoc) {
+      return res.status(404).json({ success: false, error: "No account found with this email address" });
+    }
+
+    const cleanEmail = (userDoc.email || cleanIdentifier).toLowerCase().trim();
+    const verificationCollection = db.collection("verification");
+
+    let record = null;
+    if (otp) {
+      record = await verificationCollection.findOne({
+        identifier: cleanEmail,
+        value: String(otp).trim(),
+      });
+    } else {
+      record = await verificationCollection.findOne({
+        identifier: cleanEmail,
+        verified: true,
+      });
+    }
+
+    if (!record || new Date(record.expiresAt) < new Date()) {
+      return res.status(400).json({ success: false, error: "Invalid or expired verification code" });
+    }
+
+    const hashedPassword = hashPasswordSync(finalPassword);
+
+    // Update user collection
     await db.collection("user").updateOne(
-      { email: cleanEmail },
+      { _id: userDoc._id },
+      { $set: { password: hashedPassword, updatedAt: new Date() } }
+    );
+
+    // Also update account and accounts collections if present
+    await db.collection("account").updateMany(
+      {
+        $or: [
+          { userId: userDoc._id },
+          { userId: String(userDoc._id) },
+          { providerAccountId: cleanEmail },
+        ],
+      },
+      { $set: { password: hashedPassword, updatedAt: new Date() } }
+    );
+
+    await db.collection("accounts").updateMany(
+      {
+        $or: [
+          { userId: userDoc._id },
+          { userId: String(userDoc._id) },
+          { providerAccountId: cleanEmail },
+        ],
+      },
       { $set: { password: hashedPassword, updatedAt: new Date() } }
     );
 

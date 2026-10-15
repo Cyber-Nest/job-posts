@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { apiClient } from '@/lib/api-client';
 
 /* ── Types ──────────────────────────────────────────────────────────── */
 interface FormData {
@@ -261,20 +262,15 @@ export default function RegisterPage() {
   // Send OTP to email
   const sendOTP = async () => {
     try {
-      const response = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, purpose: 'registration' }),
+      await apiClient.post('/auth/otp/send', {
+        email: form.email.toLowerCase().trim(),
+        purpose: 'registration',
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send verification code.');
-      }
       setOtpExpiry(Date.now() + 10 * 60 * 1000);
       toast.success('Verification code sent to your email!');
       return true;
     } catch (error: any) {
-      setServerError(error.message);
+      setServerError(error.message || 'Failed to send verification code.');
       toast.error(error.message || 'Failed to send verification code.');
       return false;
     }
@@ -334,48 +330,31 @@ export default function RegisterPage() {
 
     try {
       // Verify OTP first
-      const verifyResponse = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, otp: form.otp, purpose: 'registration' }),
+      await apiClient.post('/auth/otp/verify', {
+        email: form.email.toLowerCase().trim(),
+        otp: form.otp,
+        purpose: 'registration',
       });
-      const verifyData = await verifyResponse.json();
-
-      if (!verifyResponse.ok) {
-        setServerError(verifyData.error || 'Invalid verification code.');
-        setLoading(false);
-        return;
-      }
 
       // If OTP verified, proceed with registration
-      const registerResponse = await fetch('/api/auth/register/employer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: form.firstName,
-          lastName: form.lastName,
-          email: form.email,
-          username: form.username,
-          password: form.password,
-          businessName: form.businessName,
-          phoneNumber: form.phoneNumber,
-          province: form.province,
-        }),
+      await apiClient.post('/auth/register-employer', {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        name: `${form.firstName} ${form.lastName}`.trim(),
+        email: form.email.toLowerCase().trim(),
+        username: form.username,
+        password: form.password,
+        businessName: form.businessName,
+        company: form.businessName,
+        phoneNumber: form.phoneNumber,
+        phone: form.phoneNumber,
+        province: form.province,
       });
-      const registerData = await registerResponse.json();
-
-      if (!registerResponse.ok) {
-        const errMsg = registerData.error || 'Registration failed.';
-        setServerError(errMsg);
-        toast.error(errMsg);
-        setLoading(false);
-        return;
-      }
 
       setSubmitted(true);
       toast.success('Account created successfully! You can now log in.');
-    } catch {
-      const errMsg = 'Something went wrong. Please try again.';
+    } catch (error: any) {
+      const errMsg = error.message || 'Registration failed.';
       setServerError(errMsg);
       toast.error(errMsg);
     } finally {

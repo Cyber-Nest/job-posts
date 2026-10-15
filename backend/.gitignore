@@ -71,5 +71,5 @@ pids
 # AI Assistant Files
 .claude/
 
-# Import temporary files
-.import-*
+# Scripts & temporary tools
+scripts/

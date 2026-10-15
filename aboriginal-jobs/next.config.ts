@@ -18,9 +18,20 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Redirect old /api/auth paths if needed
+  // Redirect old /api/auth paths to central backend
   async rewrites() {
-    return [];
+    const backendUrl =
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api/v1";
+    return [
+      {
+        source: "/api/auth/:path*",
+        destination: `${backendUrl}/auth/:path*`,
+      },
+      {
+        source: "/api/:path*",
+        destination: `${backendUrl}/:path*`,
+      },
+    ];
   },
 };
 

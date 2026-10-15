@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginWithIdentifier } from "@/lib/auth/auth-client";
+import { apiClient } from "@/lib/api-client";
 import toast from "react-hot-toast";
 
 /* ── Animation ─────────────────────────────────────────────────────── */
@@ -495,19 +496,14 @@ export default function LoginPage() {
     setResetError("");
     setResetSuccess("");
     try {
-      const response = await fetch("/api/auth/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: resetEmail, purpose: "password_reset" }),
+      await apiClient.post("/auth/forgot-password/send-otp", {
+        email: resetEmail.toLowerCase().trim(),
+        purpose: "password_reset",
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to send reset code.");
-      }
       setOtpExpiry(Date.now() + 10 * 60 * 1000);
       setResetStep("otp");
     } catch (error: any) {
-      setResetError(error.message);
+      setResetError(error.message || "Failed to send reset code.");
     } finally {
       setResetLoading(false);
     }
@@ -523,24 +519,16 @@ export default function LoginPage() {
     setResetLoading(true);
     setResetError("");
     try {
-      const verifyResponse = await fetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: resetEmail,
-          otp: resetOtp,
-          purpose: "password_reset",
-        }),
+      await apiClient.post("/auth/forgot-password/verify-otp", {
+        email: resetEmail.toLowerCase().trim(),
+        otp: resetOtp,
+        purpose: "password_reset",
       });
-      const verifyData = await verifyResponse.json();
-      if (!verifyResponse.ok) {
-        throw new Error(verifyData.error || "Invalid verification code.");
-      }
 
       // OTP verified, show reset password form
       setShowResetPassword(true);
     } catch (error: any) {
-      setResetError(error.message);
+      setResetError(error.message || "Invalid verification code.");
     } finally {
       setResetLoading(false);
     }
@@ -560,34 +548,19 @@ export default function LoginPage() {
     setResetLoading(true);
     setResetError("");
     try {
-      const resetResponse = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: resetEmail,
-          newPassword: resetNewPassword,
-          confirmPassword: resetConfirmPassword,
-        }),
+      await apiClient.post("/auth/forgot-password/reset", {
+        email: resetEmail.toLowerCase().trim(),
+        otp: resetOtp,
+        newPassword: resetNewPassword,
+        confirmPassword: resetConfirmPassword,
       });
-      const resetData = await resetResponse.json();
-      if (!resetResponse.ok) {
-        throw new Error(resetData.error || "Failed to reset password.");
-      }
 
       setResetStep("success");
       setTimeout(() => {
-        setShowForgotPassword(false);
-        setResetStep("email");
-        setShowResetPassword(false);
-        setResetEmail("");
-        setResetOtp("");
-        setResetNewPassword("");
-        setResetConfirmPassword("");
-        setResetSuccess("");
-        setResetError("");
+        closeModal();
       }, 3000);
     } catch (error: any) {
-      setResetError(error.message);
+      setResetError(error.message || "Failed to reset password.");
     } finally {
       setResetLoading(false);
     }
@@ -599,18 +572,13 @@ export default function LoginPage() {
     setResetError("");
     setResetSuccess("");
     try {
-      const response = await fetch("/api/auth/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: resetEmail, purpose: "password_reset" }),
+      await apiClient.post("/auth/forgot-password/send-otp", {
+        email: resetEmail.toLowerCase().trim(),
+        purpose: "password_reset",
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to resend code.");
-      }
       setOtpExpiry(Date.now() + 10 * 60 * 1000);
     } catch (error: any) {
-      setResetError(error.message);
+      setResetError(error.message || "Failed to resend code.");
     } finally {
       setResetLoading(false);
     }
