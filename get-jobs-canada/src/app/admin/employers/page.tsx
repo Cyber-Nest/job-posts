@@ -32,9 +32,12 @@ interface EmployerData {
     remainingCredits?: number;
     unlimitedJobs?: boolean;
   } | null;
-  jobCount: number;
+  activePackage?: string;
+  jobCount?: number;
+  totalJobsPosted?: number;
   createdAt: string;
   name?: string;
+  contactName?: string;
   email?: string;
 }
 
@@ -182,18 +185,18 @@ export default function AdminEmployersPage() {
                       Current Plan
                     </span>
                     <span className="font-semibold text-slate-900 bg-slate-100 px-2.5 py-0.5 rounded-lg text-xs">
-                      {emp.package ? emp.package.packageName : "No Plan"}
+                      {emp.package ? emp.package.packageName : (emp.activePackage && emp.activePackage !== "No Plan" ? emp.activePackage : "No Plan")}
                     </span>
                   </div>
 
-                  {emp.name && (
+                  {(emp.contactName || emp.name) && (
                     <div className="flex items-center justify-between text-xs sm:text-sm">
                       <span className="flex items-center gap-2 text-slate-500 font-medium">
                         <User size={14} className="text-emerald-600" />
                         Contact
                       </span>
                       <span className="font-semibold text-slate-800 truncate max-w-[160px]">
-                        {emp.name}
+                        {emp.contactName || emp.name}
                       </span>
                     </div>
                   )}
@@ -228,7 +231,7 @@ export default function AdminEmployersPage() {
                       Total Jobs
                     </span>
                     <span className="font-bold text-slate-900 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md text-xs">
-                      {emp.jobCount}
+                      {emp.jobCount ?? emp.totalJobsPosted ?? 0}
                     </span>
                   </div>
 
@@ -249,7 +252,7 @@ export default function AdminEmployersPage() {
                     <span className="font-bold text-slate-900 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md text-xs">
                       {emp.package?.unlimitedJobs 
                         ? "N/A" 
-                        : ((emp.package?.totalCreditsPurchased || 0) - (emp.package?.remainingCredits || 0))}
+                        : Math.max(0, (emp.package?.totalCreditsPurchased || 0) - (emp.package?.remainingCredits || 0))}
                     </span>
                   </div>
                 </div>

@@ -51,10 +51,14 @@ export default function AdminEmployerJobsPage({ params }: { params: Promise<{ id
         setEmployerName(data.employerName || data.employer?.orgName || "Employer");
         
         const initialDates: Record<string, string> = {};
-        data.jobs.forEach((job: JobData) => {
+        (data.jobs || []).forEach((job: JobData) => {
           const d = job.postDate || job.postedAt;
           if (d) {
-            initialDates[job._id] = new Date(d).toISOString().split('T')[0];
+            try {
+              initialDates[job._id] = new Date(d).toISOString().split('T')[0];
+            } catch {
+              // Ignore invalid date
+            }
           }
         });
         setDates(initialDates);

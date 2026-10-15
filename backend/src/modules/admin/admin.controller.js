@@ -214,37 +214,110 @@ export async function getAdminEmployersHandler(req, res, next) {
     ]);
 
     // Attach Active Packages & Job Counts
-    const employerIds = employers.map((e) => e._id);
-    const authUserIds = employers.map((e) => e.authUserId);
+    const employerObjectIds = employers
+      .map((e) => e._id)
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id));
 
-    const [activePackages, jobCounts] = await Promise.all([
-      EmployerPackage.find({ employerId: { $in: employerIds }, active: true }),
-      Job.aggregate([
-        { $match: { employerId: { $in: authUserIds } } },
-        { $group: { _id: "$employerId", count: { $sum: 1 } } },
-      ]),
+    const employerStringIds = employers.map((e) => String(e._id));
+    const authUserIds = employers.map((e) => e.authUserId).filter(Boolean);
+
+    const allEmployerKeys = [
+      ...employerObjectIds,
+      ...employerStringIds,
+      ...authUserIds,
+    ];
+
+    // Find all packages for these employers
+    const [packages, jobCounts] = await Promise.all([
+      EmployerPackage.collection
+        .find({
+          employerId: { $in: [...employerObjectIds, ...employerStringIds] },
+        })
+        .sort({ createdAt: -1 })
+        .toArray(),
+      Job.collection
+        .aggregate([
+          {
+            $match: {
+              employerId: { $in: allEmployerKeys },
+            },
+          },
+          {
+            $group: {
+              _id: "$employerId",
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
     ]);
 
     const pkgMap = new Map();
-    activePackages.forEach((p) => pkgMap.set(String(p.employerId), p.packageName));
+    // Prioritize active packages, otherwise latest package
+    packages.forEach((pkg) => {
+      const key = String(pkg.employerId);
+      if (!pkgMap.has(key)) {
+        pkgMap.set(key, pkg);
+      } else if (pkg.status === "Active" && pkgMap.get(key).status !== "Active") {
+        pkgMap.set(key, pkg);
+      }
+    });
 
     const jobCountMap = new Map();
-    jobCounts.forEach((j) => jobCountMap.set(String(j._id), j.count));
+    jobCounts.forEach((j) => {
+      jobCountMap.set(String(j._id), j.count);
+    });
 
-    const result = employers.map((emp) => ({
-      _id: emp._id,
-      authUserId: emp.authUserId,
-      orgName: emp.orgName,
-      site: emp.site || "getjobscanada",
-      contactName: emp.contactName,
-      email: emp.email,
-      phone: emp.phone,
-      city: emp.city,
-      province: emp.province,
-      createdAt: emp.createdAt,
-      activePackage: pkgMap.get(String(emp._id)) || "Free Tier",
-      totalJobsPosted: jobCountMap.get(String(emp.authUserId)) || 0,
-    }));
+    const result = employers.map((emp) => {
+      const empIdStr = String(emp._id);
+      const pkgDoc = pkgMap.get(empIdStr);
+
+      const countFromEmpId = jobCountMap.get(empIdStr) || 0;
+      const countFromAuthId =
+        emp.authUserId && emp.authUserId !== empIdStr
+          ? jobCountMap.get(String(emp.authUserId)) || 0
+          : 0;
+      const jobCount = countFromEmpId + countFromAuthId;
+
+      let pkgData = null;
+      if (pkgDoc) {
+        pkgData = {
+          packageName: pkgDoc.packageName,
+          status: pkgDoc.status || "Active",
+          totalCreditsPurchased: pkgDoc.totalCreditsPurchased ?? 0,
+          remainingCredits: pkgDoc.remainingCredits ?? 0,
+          unlimitedJobs: Boolean(pkgDoc.unlimitedJobs),
+        };
+      } else if (jobCount > 0) {
+        // Fallback for free job posts if no package record exists
+        pkgData = {
+          packageName: "Free Plan",
+          status: "Active",
+          totalCreditsPurchased: jobCount,
+          remainingCredits: 0,
+          unlimitedJobs: false,
+        };
+      }
+
+      return {
+        _id: emp._id,
+        authUserId: emp.authUserId,
+        orgName: emp.orgName,
+        site: emp.site || "getjobscanada",
+        contactName: emp.contactName,
+        email: emp.email,
+        phone: emp.phone,
+        city: emp.city,
+        province: emp.province,
+        website: emp.website || "",
+        createdAt: emp.createdAt,
+        activePackage: pkgData ? pkgData.packageName : "No Plan",
+        package: pkgData,
+        jobCount,
+        totalJobsPosted: jobCount,
+      };
+    });
 
     return res.status(200).json({
       success: true,
@@ -267,7 +340,30 @@ export async function getAdminEmployerJobsHandler(req, res, next) {
       return res.status(404).json({ success: false, error: "Employer not found." });
     }
 
-    const jobs = await Job.find({ employerId: employer.authUserId }).sort({ createdAt: -1 });
+    const matchIds = [
+      employer._id,
+      String(employer._id),
+    ];
+    if (employer.authUserId) {
+      matchIds.push(employer.authUserId);
+      if (mongoose.Types.ObjectId.isValid(employer.authUserId)) {
+        matchIds.push(new mongoose.Types.ObjectId(employer.authUserId));
+      }
+    }
+
+    const rawJobs = await Job.collection
+      .find({
+        employerId: { $in: matchIds },
+      })
+      .sort({ createdAt: -1, postedAt: -1, postDate: -1 })
+      .toArray();
+
+    const jobs = rawJobs.map((j) => ({
+      ...j,
+      _id: String(j._id),
+      id: String(j._id),
+      jobId: j.jobId || String(j._id).slice(-6).toUpperCase(),
+    }));
 
     return res.status(200).json({
       success: true,
@@ -275,7 +371,10 @@ export async function getAdminEmployerJobsHandler(req, res, next) {
         _id: employer._id,
         orgName: employer.orgName,
         email: employer.email,
+        website: employer.website,
+        province: employer.province,
       },
+      employerName: employer.orgName,
       jobs,
     });
   } catch (error) {
@@ -344,14 +443,34 @@ export async function getAdminJobDetailHandler(req, res, next) {
 
 export async function updateAdminJobStatusHandler(req, res, next) {
   try {
-    const { status } = req.body;
-    if (!status) {
-      return res.status(400).json({ success: false, error: "Status is required." });
+    const { status, postDate, expiresAt } = req.body;
+    const updateFields = { updatedAt: new Date() };
+
+    if (status) updateFields.status = status;
+    if (postDate) {
+      const parsedDate = new Date(postDate);
+      if (!isNaN(parsedDate.getTime())) {
+        updateFields.postDate = parsedDate;
+        updateFields.postedAt = parsedDate;
+      }
+    }
+    if (expiresAt) {
+      const parsedExpires = new Date(expiresAt);
+      if (!isNaN(parsedExpires.getTime())) {
+        updateFields.expiresAt = parsedExpires;
+      }
+    }
+
+    if (Object.keys(updateFields).length === 1) {
+      return res.status(400).json({
+        success: false,
+        error: "At least one field (status or postDate) is required to update.",
+      });
     }
 
     const job = await Job.findByIdAndUpdate(
       req.params.id,
-      { $set: { status, updatedAt: new Date() } },
+      { $set: updateFields },
       { new: true }
     );
 
@@ -359,12 +478,12 @@ export async function updateAdminJobStatusHandler(req, res, next) {
       return res.status(404).json({ success: false, error: "Job not found." });
     }
 
-    logger.info(`[ADMIN] Job status updated for ${job._id} to ${status}`);
+    logger.info(`[ADMIN] Job updated for ${job._id}:`, updateFields);
 
     return res.status(200).json({
       success: true,
       job,
-      message: `Job status updated to ${status}.`,
+      message: "Job updated successfully.",
     });
   } catch (error) {
     next(error);
