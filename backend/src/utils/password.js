@@ -42,7 +42,20 @@ export function comparePasswordSync(password, storedHash) {
       }
     }
 
-    // 3. Plaintext fallback comparison
+    // 3. Scrypt hash format (base64salt$base64derived from old youth-employment)
+    if (storedHash.includes("$") && !storedHash.startsWith("$")) {
+      const [salt, storedDerived] = storedHash.split("$");
+      if (salt && storedDerived) {
+        const saltBuffer = Buffer.from(salt, "base64");
+        const storedBuffer = Buffer.from(storedDerived, "base64");
+        const derived = crypto.scryptSync(password, saltBuffer, storedBuffer.length);
+        if (derived.length === storedBuffer.length) {
+          return crypto.timingSafeEqual(derived, storedBuffer);
+        }
+      }
+    }
+
+    // 4. Plaintext fallback comparison
     return password === storedHash;
   } catch (error) {
     console.error("Password comparison error:", error);
