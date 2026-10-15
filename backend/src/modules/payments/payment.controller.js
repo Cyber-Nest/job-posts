@@ -79,7 +79,8 @@ export async function createCheckoutSessionHandler(req, res, next) {
       isPromoPayment: false,
     });
 
-    const clientUrl = req.headers.origin || env.CLIENT_URL || "http://localhost:3000";
+    const defaultClientUrl = env.CLIENT_URL ? env.CLIENT_URL.split(",")[0].trim() : "http://localhost:3000";
+    const clientUrl = req.headers.origin || defaultClientUrl;
 
     const sessionParams = {
       mode: "payment",

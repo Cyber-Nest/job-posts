@@ -20,8 +20,13 @@ import authRoutes from "./modules/auth/auth.routes.js";
 const app = express();
 
 // CORS Configuration for Multi-Tenant Frontends
+const configuredUrls = (env.CLIENT_URL || "")
+  .split(",")
+  .map((u) => u.trim())
+  .filter(Boolean);
+
 const allowedOrigins = [
-  env.CLIENT_URL,
+  ...configuredUrls,
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3002",
@@ -41,10 +46,16 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // allow requests with no origin (like mobile apps or curl)
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app") ||
+        process.env.NODE_ENV !== "production"
+      ) {
         return callback(null, true);
       }
-      return callback(null, true); // Allow all origins in dev mode or specify allowedOrigins
+      return callback(null, true); // Allow all origins in multi-tenant mode
     },
     credentials: true,
   })
