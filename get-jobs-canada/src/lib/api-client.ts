@@ -33,6 +33,7 @@ async function request<T = any>(
     }
   }
 
+  const isFormData = data instanceof FormData;
   const isAdminRequest =
     endpoint.startsWith("/admin") || endpoint.includes("/admin/");
   const token =
