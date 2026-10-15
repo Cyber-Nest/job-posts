@@ -15,12 +15,15 @@ export async function connectDB() {
 
     await mongoose.connect(env.MONGODB_URI, {
       dbName: env.MONGODB_DB_NAME,
+      serverSelectionTimeoutMS: 5000,
     });
 
     logger.info(`[Database] MongoDB Connected to database: ${env.MONGODB_DB_NAME}`);
 
-    // Seed/Migrate Admin credentials
-    await seedAdmin();
+    // Seed/Migrate Admin credentials (non-blocking)
+    seedAdmin().catch((err) => {
+      logger.warn(`[Database] Seed admin check warning: ${err.message}`);
+    });
 
     return mongoose.connection;
   } catch (error) {

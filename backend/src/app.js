@@ -42,10 +42,37 @@ const allowedOrigins = [
   "https://www.youthemployment.ca",
 ].filter(Boolean);
 
+// Universal CORS & Preflight OPTIONS Handler
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  }
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Site-ID, site-id, Accept, Origin, X-Requested-With, Cookie"
+  );
+  res.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
+  res.setHeader("Access-Control-Max-Age", "86400");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  next();
+});
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (like mobile apps or curl)
+      // allow requests with no origin (like mobile apps, curl, or serverless)
       if (!origin) return callback(null, true);
 
       if (
@@ -79,18 +106,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Database auto-reconnect middleware (vital for Serverless / Vercel cold starts)
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    logger.error("[Database Middleware] DB connection failed:", err);
-    res.status(500).json({ success: false, error: "Database connection failed." });
-  }
-});
-
-// Root & Health check endpoints
+// Root & Health check endpoints (placed before DB connection middleware so health checks never timeout)
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "ok",
@@ -106,6 +122,17 @@ app.get("/health", (req, res) => {
     service: "GetJobsCanada Modular Express Backend",
     timestamp: new Date().toISOString(),
   });
+});
+
+// Database auto-reconnect middleware (vital for Serverless / Vercel cold starts)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    logger.error("[Database Middleware] DB connection failed:", err);
+    res.status(500).json({ success: false, error: "Database connection failed." });
+  }
 });
 
 // Mount V1 API Routes
