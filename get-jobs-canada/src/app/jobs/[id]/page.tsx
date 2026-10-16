@@ -60,6 +60,7 @@ interface JobDetail {
   company: string;
   contactName?: string;
   jobId?: string;
+  jobUniqueId?: string;
   city: string;
   province: string;
   location: string;
@@ -94,6 +95,7 @@ interface ApplyModalProps {
   onClose: () => void;
   jobTitle: string;
   company: string;
+  jobId?: string;
   applyMethods: ApplyMethod[];
 }
 
@@ -102,6 +104,7 @@ function ApplyModal({
   onClose,
   jobTitle,
   company,
+  jobId,
   applyMethods,
 }: ApplyModalProps) {
   useEffect(() => {
@@ -178,6 +181,11 @@ function ApplyModal({
                   </h3>
                   <p className="text-emerald-100 text-xs sm:text-sm font-medium line-clamp-1">
                     {jobTitle} • <span className="text-white font-bold">{company}</span>
+                    {jobId && (
+                      <span className="ml-2 font-mono font-bold text-emerald-200">
+                        (#{jobId})
+                      </span>
+                    )}
                   </p>
                 </div>
                 <button
@@ -607,6 +615,7 @@ export default function JobDetailPage() {
         onClose={() => setIsApplyModalOpen(false)}
         jobTitle={job.title}
         company={job.company}
+        jobId={job.jobId || job.jobUniqueId}
         applyMethods={applyMethods}
       />
       <ShareModal
@@ -623,18 +632,32 @@ export default function JobDetailPage() {
 
         <div className="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
           
-          {/* Top Pill Badge */}
+          {/* Top Pill Badge & Badges Row */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 p-1 pr-4 rounded-full bg-emerald-50/80 border border-emerald-200/80 shadow-xs mb-4"
+            className="flex flex-wrap items-center gap-2 mb-4"
           >
-            <span className="bg-[#059669] text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider leading-none flex items-center gap-1">
-              <Building2 size={11} /> {job.company}
-            </span>
-            <span className="text-xs font-semibold text-slate-700 leading-none">
-              Verified Canadian Listing
-            </span>
+            <div className="inline-flex items-center gap-2 p-1 pr-4 rounded-full bg-emerald-50/80 border border-emerald-200/80 shadow-xs">
+              <span className="bg-[#059669] text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider leading-none flex items-center gap-1">
+                <Building2 size={11} /> {job.company}
+              </span>
+              <span className="text-xs font-semibold text-slate-700 leading-none">
+                Verified Canadian Listing
+              </span>
+            </div>
+
+            {(job.jobId || job.jobUniqueId) && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100/90 text-slate-700 text-xs font-mono font-bold border border-slate-200 shadow-xs">
+                <Hash size={12} className="text-[#059669]" /> {job.jobId || job.jobUniqueId}
+              </span>
+            )}
+
+            {job.remote && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-200/80 shadow-xs">
+                <Wifi size={12} /> Remote
+              </span>
+            )}
           </motion.div>
 
           {/* Main Title & Subtitle */}
@@ -657,6 +680,14 @@ export default function JobDetailPage() {
               <span className="inline-flex items-center gap-1 text-slate-700 font-medium">
                 <Clock size={15} className="text-[#059669]" /> {job.employmentType}
               </span>
+              {(job.jobId || job.jobUniqueId) && (
+                <>
+                  <span className="text-slate-300">•</span>
+                  <span className="inline-flex items-center gap-1 text-slate-700 font-bold font-mono text-xs sm:text-sm bg-slate-100/90 px-2.5 py-0.5 rounded-lg border border-slate-200">
+                    <Hash size={12} className="text-[#059669]" /> {job.jobId || job.jobUniqueId}
+                  </span>
+                </>
+              )}
             </p>
           </motion.div>
 
@@ -915,6 +946,17 @@ export default function JobDetailPage() {
                 <Code2 size={18} className="text-[#059669]" /> Position Summary & Specifications
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/70 rounded-2xl p-5 border border-slate-200/60">
+                {(job.jobId || job.jobUniqueId) && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/80 text-[#059669] flex items-center justify-center text-xs font-mono font-bold shadow-xs">
+                      <Hash size={16} />
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-slate-400 font-bold block uppercase tracking-wider">Job ID / Reference</span>
+                      <span className="text-xs font-bold text-slate-900 font-mono">{job.jobId || job.jobUniqueId}</span>
+                    </div>
+                  </div>
+                )}
                 {job.nocCode && (
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-xs font-mono font-bold shadow-xs">
