@@ -6,6 +6,7 @@ import { Link } from "@/router";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
+import { formatJobId } from "@/lib/utils";
 import {
   Eye,
   Edit,
@@ -558,7 +559,7 @@ export default function DashboardPage() {
                                   JOB-ID
                                 </span>
                                 <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md tracking-wide font-mono">
-                                  #{job.jobId || (job as any).jobUniqueId || (job.id?.length === 24 ? job.id.slice(-6).toUpperCase() : job.id)}
+                                  #{formatJobId(job.jobId || (job as any).jobUniqueId || (job.id?.length === 24 ? job.id.slice(-6).toUpperCase() : job.id))}
                                 </span>
                               </>
                             )}

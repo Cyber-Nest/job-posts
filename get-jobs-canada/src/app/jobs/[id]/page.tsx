@@ -41,6 +41,7 @@ import {
   Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatJobId } from "@/lib/utils";
 
 /* ── Types ──────────────────────────────────────────────────────────── */
 
@@ -183,7 +184,7 @@ function ApplyModal({
                     {jobTitle} • <span className="text-white font-bold">{company}</span>
                     {jobId && (
                       <span className="ml-2 font-mono font-bold text-emerald-200">
-                        (#{jobId})
+                        (#{formatJobId(jobId)})
                       </span>
                     )}
                   </p>
@@ -649,7 +650,7 @@ export default function JobDetailPage() {
 
             {(job.jobId || job.jobUniqueId) && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100/90 text-slate-700 text-xs font-mono font-bold border border-slate-200 shadow-xs">
-                <Hash size={12} className="text-[#059669]" /> {job.jobId || job.jobUniqueId}
+                <Hash size={12} className="text-[#059669]" /> {formatJobId(job.jobId || job.jobUniqueId)}
               </span>
             )}
 
@@ -684,7 +685,7 @@ export default function JobDetailPage() {
                 <>
                   <span className="text-slate-300">•</span>
                   <span className="inline-flex items-center gap-1 text-slate-700 font-bold font-mono text-xs sm:text-sm bg-slate-100/90 px-2.5 py-0.5 rounded-lg border border-slate-200">
-                    <Hash size={12} className="text-[#059669]" /> {job.jobId || job.jobUniqueId}
+                    <Hash size={12} className="text-[#059669]" /> {formatJobId(job.jobId || job.jobUniqueId)}
                   </span>
                 </>
               )}
@@ -953,7 +954,7 @@ export default function JobDetailPage() {
                     </div>
                     <div>
                       <span className="text-[11px] text-slate-400 font-bold block uppercase tracking-wider">Job ID / Reference</span>
-                      <span className="text-xs font-bold text-slate-900 font-mono">{job.jobId || job.jobUniqueId}</span>
+                      <span className="text-xs font-bold text-slate-900 font-mono">{formatJobId(job.jobId || job.jobUniqueId)}</span>
                     </div>
                   </div>
                 )}

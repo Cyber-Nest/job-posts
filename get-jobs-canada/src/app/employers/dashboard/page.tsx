@@ -56,6 +56,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth/auth-client";
+import { formatJobId } from "@/lib/utils";
 
 /* ── Types ──────────────────────────────────────────────────────────── */
 interface ApplyMethod {
@@ -438,7 +439,7 @@ function ViewJobModal({
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">
                 {job.jobId && (
                   <span className="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-full text-slate-300 text-xs font-mono">
-                    <Hash size={14} className="text-[#059669]" /> {job.jobId}
+                    <Hash size={14} className="text-[#059669]" /> {formatJobId(job.jobId)}
                   </span>
                 )}
                 {job.contactName && (
@@ -815,7 +816,7 @@ function JobCard({
               variant="outline"
               className="text-[10px] bg-slate-100 text-slate-600 border-slate-200 rounded-md font-mono px-2 py-0.5"
             >
-              <Hash size={10} className="mr-1" /> {job.jobId}
+              <Hash size={10} className="mr-1" /> {formatJobId(job.jobId)}
             </Badge>
           )}
         </div>

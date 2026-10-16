@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Job } from "@/lib/jobs-data";
 import { apiClient } from "@/lib/api-client";
+import { formatJobId } from "@/lib/utils";
 
 /* ── Animations ─────────────────────────────────────────────────────── */
 const fadeUp = {
@@ -378,7 +379,7 @@ export default function JobDetailPage() {
                   {(job.jobId || job.jobUniqueId) && (
                     <span className="inline-flex items-center gap-2 text-sm text-gray-600 bg-white border border-blue-200 rounded-full px-4 py-1.5">
                       <CheckCircle size={13} className="text-blue-500" />
-                      Job ID: {job.jobId || job.jobUniqueId}
+                      Job ID: {formatJobId(job.jobId || job.jobUniqueId)}
                     </span>
                   )}
                   {job.salary && (

@@ -37,6 +37,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api-client";
+import { formatJobId } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -446,7 +447,7 @@ function ViewJobModal({
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">
                 {job.jobId && (
                   <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-0.5 rounded-md backdrop-blur-sm text-white/80 text-xs font-mono">
-                    <Hash size={14} className="text-white/80" /> {job.jobId}
+                    <Hash size={14} className="text-white/80" /> {formatJobId(job.jobId)}
                   </span>
                 )}
                 {job.contactName && (
@@ -839,7 +840,7 @@ function JobCard({
               variant="outline"
               className="text-[10px] bg-neutral-100 text-neutral-600 border-neutral-300 rounded-md font-mono px-2 py-0"
             >
-              <Hash size={10} className="mr-1" /> {job.jobId}
+              <Hash size={10} className="mr-1" /> {formatJobId(job.jobId)}
             </Badge>
           )}
         </div>

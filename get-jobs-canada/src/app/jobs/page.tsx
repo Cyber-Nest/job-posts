@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatJobId } from "@/lib/utils";
 
 /* ── Constants ──────────────────────────────────────────────────────── */
 const PAGE_SIZE = 8;
@@ -265,7 +266,7 @@ function JobCard({ job, viewMode = "grid" }: { job: Job; viewMode?: "grid" | "li
               )}
               {job.jobId && (
                 <span className="hidden sm:inline-flex items-center gap-1 text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-mono border border-slate-200">
-                  <Hash size={9} /> {job.jobId}
+                  <Hash size={9} /> {formatJobId(job.jobId)}
                 </span>
               )}
             </div>

@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api-client";
+import { formatJobId } from "@/lib/utils";
 
 // ─── Animation Variants ───────────────────────────────────────────────────────
 
@@ -166,7 +167,7 @@ function JobSearchCard({ job }: { job: JobCardProps }) {
             )}
             {job.jobId && (
               <span className="text-xs bg-neutral-100 text-neutral-500 border border-neutral-200 px-2.5 py-0.5 rounded-full font-mono">
-                {job.jobId}
+                {formatJobId(job.jobId)}
               </span>
             )}
           </div>
@@ -843,7 +844,7 @@ export default function HomePage() {
                       )}
                       {job.jobId && (
                         <span className="text-xs bg-neutral-100 text-neutral-500 border border-neutral-200 px-2.5 py-0.5 rounded-full font-mono">
-                          {job.jobId}
+                          {formatJobId(job.jobId)}
                         </span>
                       )}
                     </div>

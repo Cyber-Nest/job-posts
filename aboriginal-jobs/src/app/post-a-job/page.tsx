@@ -28,6 +28,7 @@ import JobPostingPreview, {
 } from "@/components/JobPostingPreview";
 import { useSession } from "@/lib/auth/auth-client";
 import { apiClient } from "@/lib/api-client";
+import { formatJobId } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -959,7 +960,7 @@ function PostAJobContent() {
                         Job ID
                       </Label>
                       <p className="font-mono text-base font-semibold text-[#1C1C1C] mt-1">
-                        {displayJobId}
+                        {formatJobId(displayJobId)}
                       </p>
                       <p className="text-xs text-[#6B3A2A]/50 mt-1">
                         This ID is auto-generated and cannot be changed

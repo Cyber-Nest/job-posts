@@ -22,6 +22,7 @@ import JobPostingPreview, {
   type JobPostingData,
 } from "@/components/JobPostingPreview";
 import { apiClient } from "@/lib/api-client";
+import { formatJobId } from "@/lib/utils";
 
 /* ── Validation Functions ─────────────────────────────────────────────── */
 const validations = {
@@ -728,7 +729,7 @@ export default function PostAJobPage({
             </p>
             {submittedJob?.jobUniqueId && (
               <p className="text-gray-500 text-sm mb-2">
-                <strong>Job ID:</strong> {submittedJob.jobUniqueId}
+                <strong>Job ID:</strong> {formatJobId(submittedJob.jobUniqueId)}
               </p>
             )}
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">

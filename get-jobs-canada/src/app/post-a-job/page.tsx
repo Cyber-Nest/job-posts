@@ -29,6 +29,7 @@ import { useSession } from "@/lib/auth/auth-client";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { formatJobId } from "@/lib/utils";
 
 /* ── Animation variants ─────────────────────────────────────────────── */
 const fadeUp = {
@@ -934,7 +935,7 @@ function PostAJobContent() {
                         Job ID
                       </Label>
                       <p className="font-mono text-base font-bold text-slate-900 mt-1">
-                        {displayJobId}
+                        {formatJobId(displayJobId)}
                       </p>
                       <p className="text-xs text-slate-500 mt-1">
                         This ID is auto-generated and cannot be changed

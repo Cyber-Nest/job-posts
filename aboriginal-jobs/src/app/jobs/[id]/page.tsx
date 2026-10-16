@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { formatJobId } from "@/lib/utils";
 import {
   MapPin,
   Clock,
@@ -872,7 +873,7 @@ export default function JobDetailPage() {
                   {/* Job ID Badge */}
                   {job.jobId && (
                     <span className="inline-flex items-center gap-1.5 text-xs bg-neutral-100 text-neutral-600 border border-neutral-200 px-2.5 py-1 rounded-full font-mono">
-                      <Hash size={11} /> {job.jobId}
+                      <Hash size={11} /> {formatJobId(job.jobId)}
                     </span>
                   )}
                 </div>

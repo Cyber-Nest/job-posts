@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { formatJobId } from "@/lib/utils";
 
 interface JobData {
   _id: string;
@@ -175,7 +176,7 @@ export default function AdminEmployerJobsPage({ params }: { params: Promise<{ id
                       <div className="flex flex-col">
                         <span className="font-semibold text-slate-900 text-sm">{job.title}</span>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-slate-400">ID: {job.jobId}</span>
+                          <span className="text-xs text-slate-400">ID: {formatJobId(job.jobId)}</span>
                           {job.category && (
                             <>
                               <span className="text-slate-300">•</span>
