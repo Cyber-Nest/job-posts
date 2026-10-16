@@ -648,11 +648,11 @@ export default function JobDetailPage() {
               </span>
             </div>
 
-            {(job.jobId || job.jobUniqueId) && (
+            {/* {(job.jobId || job.jobUniqueId) && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100/90 text-slate-700 text-xs font-mono font-bold border border-slate-200 shadow-xs">
                 <Hash size={12} className="text-[#059669]" /> {formatJobId(job.jobId || job.jobUniqueId)}
               </span>
-            )}
+            )} */}
 
             {job.remote && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-200/80 shadow-xs">
@@ -681,14 +681,14 @@ export default function JobDetailPage() {
               <span className="inline-flex items-center gap-1 text-slate-700 font-medium">
                 <Clock size={15} className="text-[#059669]" /> {job.employmentType}
               </span>
-              {(job.jobId || job.jobUniqueId) && (
+              {/* {(job.jobId || job.jobUniqueId) && (
                 <>
                   <span className="text-slate-300">•</span>
                   <span className="inline-flex items-center gap-1 text-slate-700 font-bold font-mono text-xs sm:text-sm bg-slate-100/90 px-2.5 py-0.5 rounded-lg border border-slate-200">
                     <Hash size={12} className="text-[#059669]" /> {formatJobId(job.jobId || job.jobUniqueId)}
                   </span>
                 </>
-              )}
+              )} */}
             </p>
           </motion.div>
 
