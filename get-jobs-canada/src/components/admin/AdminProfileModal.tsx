@@ -141,8 +141,8 @@ export default function AdminProfileModal({
     try {
       const data = await apiClient.post("/admin/auth/change-request", payload);
 
-      if (data._devOtp) {
-        setDevOtp(data._devOtp);
+      if (data?._devOtp || data?._devCode) {
+        setDevOtp(data._devOtp || data._devCode);
       }
       setSuccess(`Verification code sent to current email: ${email}`);
       toast.success("Verification code sent to your email!");
@@ -150,7 +150,7 @@ export default function AdminProfileModal({
       setStep("otp");
       setOtp("");
     } catch (err: any) {
-      const errMsg = err.message || "Failed to process request. Please try again.";
+      const errMsg = err?.message || err?.error || "Failed to process request. Please try again.";
       setError(errMsg);
       toast.error(errMsg);
     } finally {
@@ -176,15 +176,15 @@ export default function AdminProfileModal({
     try {
       const data = await apiClient.post("/admin/auth/change-request", payload);
 
-      if (data._devOtp) {
-        setDevOtp(data._devOtp);
+      if (data?._devOtp || data?._devCode) {
+        setDevOtp(data._devOtp || data._devCode);
       }
       setSuccess("New verification code sent.");
       toast.success("New verification code sent!");
       setOtpCountdown(60);
       setOtp("");
     } catch (err: any) {
-      const errMsg = err.message || "Failed to resend code.";
+      const errMsg = err?.message || err?.error || "Failed to resend code.";
       setError(errMsg);
       toast.error(errMsg);
     } finally {
@@ -199,7 +199,7 @@ export default function AdminProfileModal({
       return;
     }
 
-    const payload: any = { otp };
+    const payload: any = { otp, code: otp };
     let isEmailChanged = false;
     if (newEmail.toLowerCase() !== email.toLowerCase()) {
       payload.newEmail = newEmail.toLowerCase().trim();
@@ -221,6 +221,12 @@ export default function AdminProfileModal({
         setError(errMsg);
         toast.error(errMsg);
         return;
+      }
+
+      if (data?.token && typeof window !== "undefined") {
+        localStorage.setItem("admin_token", data.token);
+        const isSecure = window.location.protocol === "https:";
+        document.cookie = `admin_token=${data.token}; path=/; max-age=86400; SameSite=Lax${isSecure ? "; Secure" : ""}`;
       }
 
       toast.success("Admin credentials updated successfully!");
@@ -245,9 +251,10 @@ export default function AdminProfileModal({
       // Go back to view mode
       setStep("view");
       setDevOtp("");
-    } catch {
-      setError("Something went wrong. Please try again.");
-      toast.error("Something went wrong.");
+    } catch (err: any) {
+      const errMsg = err?.message || err?.error || "Something went wrong. Please try again.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }

@@ -81,9 +81,11 @@ export async function getAdminCredentialsHandler(req, res, next) {
     if (!admin) {
       return res.status(404).json({ success: false, error: "Admin not found." });
     }
+    const decryptedPassword = decryptPassword(admin.password);
     return res.status(200).json({
       success: true,
       email: admin.email,
+      password: decryptedPassword,
       emailChangeCount: admin.emailChangeCount || 0,
     });
   } catch (error) {
@@ -127,6 +129,7 @@ export async function adminChangeRequestHandler(req, res, next) {
       success: true,
       message: "Verification code sent to admin email.",
       _devCode: process.env.NODE_ENV !== "production" ? code : undefined,
+      _devOtp: process.env.NODE_ENV !== "production" ? code : undefined,
     });
   } catch (error) {
     next(error);
@@ -135,17 +138,18 @@ export async function adminChangeRequestHandler(req, res, next) {
 
 export async function adminChangeConfirmHandler(req, res, next) {
   try {
-    const { code } = req.body;
-    if (!code) {
+    const rawCode = req.body.code || req.body.otp;
+    if (!rawCode) {
       return res.status(400).json({ success: false, error: "Verification code is required." });
     }
+    const code = String(rawCode).trim();
 
     const db = mongoose.connection.db;
     const adminChangeCollection = db.collection("admin_change_requests");
 
     const record = await adminChangeCollection.findOne({
       email: req.admin.email.toLowerCase(),
-      code: String(code).trim(),
+      code: code,
     });
 
     if (!record || new Date(record.expiresAt) < new Date()) {
@@ -157,32 +161,37 @@ export async function adminChangeConfirmHandler(req, res, next) {
       return res.status(404).json({ success: false, error: "Admin account not found." });
     }
 
-    if (record.newEmail) {
-      admin.email = record.newEmail;
+    const targetNewEmail = (req.body.newEmail || record.newEmail || "").toLowerCase().trim();
+    const targetNewPassword = req.body.newPassword || record.newPassword;
+
+    if (targetNewEmail && targetNewEmail !== admin.email) {
+      admin.email = targetNewEmail;
       admin.emailChangeCount = (admin.emailChangeCount || 0) + 1;
     }
 
-    if (record.newPassword) {
-      admin.password = encryptPassword(record.newPassword);
+    if (targetNewPassword) {
+      admin.password = encryptPassword(targetNewPassword);
     }
 
     await admin.save();
     await adminChangeCollection.deleteOne({ _id: record._id });
 
-    // Re-issue new token if email changed
+    // Re-issue new token if email changed or credentials updated
     const newToken = await generateAdminToken(admin.email);
-    const isProd = env.NODE_ENV === "production";
+    const isProd = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
     res.cookie("admin_token", newToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
     });
 
     logger.info(`[ADMIN] Credentials updated successfully for ${admin.email}`);
 
     return res.status(200).json({
       success: true,
+      token: newToken,
       message: "Admin credentials updated successfully.",
       email: admin.email,
     });

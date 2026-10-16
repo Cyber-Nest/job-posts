@@ -221,7 +221,7 @@ export default function AdminProfileModal({
       return;
     }
 
-    const payload: any = { otp };
+    const payload: any = { otp, code: otp };
     let isEmailChanged = false;
     if (newEmail.toLowerCase() !== email.toLowerCase()) {
       payload.newEmail = newEmail.toLowerCase().trim();
@@ -250,6 +250,12 @@ export default function AdminProfileModal({
         return;
       }
 
+      if (data?.token && typeof window !== "undefined") {
+        localStorage.setItem("admin_token", data.token);
+        const isSecure = window.location.protocol === "https:";
+        document.cookie = `admin_token=${data.token}; path=/; max-age=86400; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+      }
+
       toast.success("Admin credentials updated successfully!");
       const updatedEmail = newEmail.toLowerCase().trim();
       const updatedPassword = (newPassword && newPassword !== password && newPassword.trim() !== "")
@@ -272,9 +278,10 @@ export default function AdminProfileModal({
       // Go back to view mode
       setStep("view");
       setDevOtp("");
-    } catch {
-      setError("Something went wrong. Please try again.");
-      toast.error("Something went wrong.");
+    } catch (err: any) {
+      const errMsg = err?.message || err?.error || "Something went wrong. Please try again.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
