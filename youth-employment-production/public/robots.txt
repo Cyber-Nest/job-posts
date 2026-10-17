@@ -1,2 +1,9 @@
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /dashboard
+Disallow: /edit-job
+Disallow: /payment
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://youthemployment.ca/sitemap.xml

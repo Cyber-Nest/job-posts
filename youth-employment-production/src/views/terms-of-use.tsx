@@ -1,3 +1,5 @@
+'use client';
+
 import { Helmet } from "@dr.pogodin/react-helmet";
 
 export default function TermsOfUsePage() {

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from "react";
 import { Helmet } from "@dr.pogodin/react-helmet";
 import { motion } from "motion/react";

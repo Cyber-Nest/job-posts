@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useMemo, useEffect } from "react";
 import { Helmet } from "@dr.pogodin/react-helmet";
 import { Link, useSearchParams } from "@/router";
@@ -409,10 +411,16 @@ export default function JobsPage() {
   return (
     <>
       <Helmet>
-        <title>Browse Jobs — Youth Employment Canada</title>
+        <title>
+          Jobs in Canada (2026) — Search 1,000+ Youth, Student & Entry-Level Jobs | Youth Employment Canada
+        </title>
         <meta
           name="description"
-          content="Browse hundreds of job opportunities for youth job seekers across Canada."
+          content="Search verified jobs in Canada for youth, students, and new graduates. Browse openings across Ontario, British Columbia, Alberta, and nationwide."
+        />
+        <meta
+          name="keywords"
+          content="Jobs in Canada, Youth Employment Canada, Canada jobs, Jobs for youth in Canada, Student jobs Canada, Entry level jobs Canada, Summer jobs Canada"
         />
       </Helmet>
 

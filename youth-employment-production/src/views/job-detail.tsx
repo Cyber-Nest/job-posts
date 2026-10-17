@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from "react";
 import { Helmet } from "@dr.pogodin/react-helmet";
 import { Link, useParams } from "@/router";
@@ -75,14 +77,20 @@ function RelatedCard({ job }: { job: Job }) {
 }
 
 /* ── Main page ──────────────────────────────────────────────────────── */
-export default function JobDetailPage() {
+export default function JobDetailPage({ initialJob }: { initialJob?: Job | null } = {}) {
   const { id } = useParams<{ id: string }>();
-  const [job, setJob] = useState<Job | null>(null);
+  const [job, setJob] = useState<Job | null>(initialJob || null);
   const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialJob);
   const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
+    if (initialJob && (initialJob.id === id || String((initialJob as any)._id) === id)) {
+      setJob(initialJob);
+      setLoading(false);
+      return;
+    }
+
     const jobId = id;
     if (!jobId) {
       setLoading(false);
@@ -108,7 +116,7 @@ export default function JobDetailPage() {
     }
 
     loadJob();
-  }, [id]);
+  }, [id, initialJob]);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -277,12 +285,17 @@ export default function JobDetailPage() {
     <>
       <Helmet>
         <title>
-          {job.title} at {job.company} — Youth Employment Canada
+          {job.title} at {job.company} ({job.location || "Canada"}) — Youth Employment Canada
         </title>
         <meta
           name="description"
-          content={`${job.title} at ${job.company} in ${job.location}. ${job.employmentType} · ${job.salary}. Apply on Youth Employment Canada.`}
+          content={`Apply for ${job.title} at ${job.company} in ${job.location || "Canada"}. ${job.employmentType || ""} position. ${job.salary ? `Salary: ${job.salary}.` : ""} Search youth jobs in Canada on Youth Employment Canada.`}
         />
+        <meta
+          name="keywords"
+          content={`${job.title}, ${job.title} jobs Canada, ${job.company} careers, jobs in ${job.location || "Canada"}, youth employment canada, jobs in canada`}
+        />
+        <link rel="canonical" href={`https://youthemployment.ca/jobs/${job.id}`} />
       </Helmet>
 
       {/* ── Breadcrumb ──────────────────────────────────────────── */}

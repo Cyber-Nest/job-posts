@@ -1,3 +1,5 @@
+'use client';
+
 import { Helmet } from "@dr.pogodin/react-helmet";
 import { Link } from "@/router";
 import { motion } from "motion/react";

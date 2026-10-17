@@ -23,8 +23,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <Website>
       <Helmet>
-        <title>Youth Employment Canada — Canada's Youth Employment Network</title>
-        <meta name="description" content="Youth Employment Canada connects young Canadians with inclusive employers nationwide. Find jobs, post opportunities, and launch your next career." />
+        <title>Youth Employment Canada — Jobs for Students, Youth & Graduates in Canada</title>
+        <meta name="description" content="Find jobs in Canada for youth, students, and new graduates. Connect with top inclusive employers nationwide on Youth Employment Canada." />
       </Helmet>
       <ScrollRestoration />
       <Header />

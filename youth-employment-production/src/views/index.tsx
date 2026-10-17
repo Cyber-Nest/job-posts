@@ -1,3 +1,5 @@
+'use client';
+
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@/router";
@@ -413,11 +415,15 @@ export default function HomePage() {
     <>
       <Helmet>
         <title>
-          Youth Employment Canada — Canada's Youth Employment Network
+          Youth Employment Canada — Find Jobs for Youth, Students & Graduates in Canada
         </title>
         <meta
           name="description"
-          content="Youth Employment Canada connects young Canadians with inclusive employers nationwide. Find jobs, post opportunities, and launch your next career."
+          content="Canada’s premier youth employment network. Connect with inclusive Canadian employers, explore verified job opportunities, post jobs, and find jobs in Canada."
+        />
+        <meta
+          name="keywords"
+          content="Jobs in Canada, Youth Employment Canada, Jobs for youth Canada, Student jobs in Canada, Entry level jobs Canada, Summer jobs Canada"
         />
       </Helmet>
 
