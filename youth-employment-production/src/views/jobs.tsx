@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo, useEffect } from "react";
-import { Helmet } from "@dr.pogodin/react-helmet";
 import { Link, useSearchParams } from "@/router";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -21,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api-client";
+import { getJobSlug } from "@/lib/utils";
 
 /* ── Constants ──────────────────────────────────────────────────────── */
 const PAGE_SIZE = 8;
@@ -181,7 +181,7 @@ function JobCard({ job }: { job: Job }) {
   return (
     <motion.div variants={fadeUp}>
       <Link
-        to={`/jobs/${job.id}`}
+        to={`/jobs/${getJobSlug(job)}`}
         className="group block bg-white rounded-2xl border border-blue-200 hover:border-blue-400 hover:shadow-md transition-all duration-200 p-5"
       >
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -318,7 +318,7 @@ function FilterSelect({
 }
 
 /* ── Main page ──────────────────────────────────────────────────────── */
-export default function JobsPage() {
+export default function JobsPage({ initialJobs = [] }: { initialJobs?: Job[] } = {}) {
   const [filters, setFilters] = useState<JobFilters>({
     query: "",
     location: "",
@@ -330,8 +330,8 @@ export default function JobsPage() {
   });
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+  const [loading, setLoading] = useState(initialJobs.length === 0);
   const [fetchError, setFetchError] = useState("");
   const [searchParams] = useSearchParams();
   const queryParam = searchParams.get("search")?.trim() ?? "";
@@ -357,6 +357,11 @@ export default function JobsPage() {
   }, [queryParam, locationParam]);
 
   useEffect(() => {
+    if (initialJobs && initialJobs.length > 0) {
+      setJobs(initialJobs);
+      setLoading(false);
+      return;
+    }
     async function loadJobs() {
       setLoading(true);
       setFetchError("");
@@ -373,7 +378,7 @@ export default function JobsPage() {
       }
     }
     loadJobs();
-  }, []);
+  }, [initialJobs]);
 
   const set = <K extends keyof JobFilters>(key: K, value: JobFilters[K]) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -410,20 +415,6 @@ export default function JobsPage() {
 
   return (
     <>
-      <Helmet>
-        <title>
-          Jobs in Canada (2026) — Search 1,000+ Youth, Student & Entry-Level Jobs | Youth Employment Canada
-        </title>
-        <meta
-          name="description"
-          content="Search verified jobs in Canada for youth, students, and new graduates. Browse openings across Ontario, British Columbia, Alberta, and nationwide."
-        />
-        <meta
-          name="keywords"
-          content="Jobs in Canada, Youth Employment Canada, Canada jobs, Jobs for youth in Canada, Student jobs Canada, Entry level jobs Canada, Summer jobs Canada"
-        />
-      </Helmet>
-
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-blue-50 to-white py-14 lg:py-20 relative overflow-hidden">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

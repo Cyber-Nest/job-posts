@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import JobsPage from '@/views/jobs';
+import { getJobSlug } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title:
@@ -45,10 +46,55 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  'https://job-posts-server.vercel.app/api/v1';
+
+async function getInitialJobs() {
+  try {
+    const res = await fetch(`${BACKEND_URL}/jobs?limit=20`, {
+      headers: {
+        'X-Site-ID': 'youthemployment',
+      },
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || data.jobs || [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function Page() {
+  const jobs = await getInitialJobs();
+
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Latest Youth & Student Jobs in Canada',
+    description:
+      'Verified entry-level, student, and youth job postings across Canada.',
+    numberOfItems: jobs.length,
+    itemListElement: jobs.slice(0, 15).map((job: any, index: number) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: `${job.title || 'Job Opening'} at ${job.company || 'Canadian Employer'}`,
+      url: `https://youthemployment.ca/jobs/${getJobSlug(job) || job.id || job._id}`,
+    })),
+  };
+
   return (
-    <Suspense fallback={null}>
-      <JobsPage />
-    </Suspense>
+    <>
+      {jobs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        />
+      )}
+      <Suspense fallback={null}>
+        <JobsPage initialJobs={jobs} />
+      </Suspense>
+    </>
   );
 }

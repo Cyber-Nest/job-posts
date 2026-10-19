@@ -62,10 +62,6 @@ export const metadata: Metadata = {
     description:
       "Find entry-level, student, and youth jobs across Canada with top hiring employers.",
   },
-
-  alternates: {
-    canonical: "https://youthemployment.ca",
-  },
 };
 
 const jsonLdWebSite = {
@@ -74,7 +70,7 @@ const jsonLdWebSite = {
   name: "Youth Employment Canada",
   url: "https://youthemployment.ca",
   description:
-    "Canada's youth and student employment network connecting young job seekers with employers.",
+    "Canada's premier youth and student employment network connecting young job seekers with verified employers.",
   potentialAction: {
     "@type": "SearchAction",
     target: {
@@ -89,14 +85,33 @@ const jsonLdOrganization = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Youth Employment Canada",
+  legalName: "Youth Employment Canada Network",
   url: "https://youthemployment.ca",
-  logo: "https://youthemployment.ca/logo.svg",
-  sameAs: [
-    "https://twitter.com",
-    "https://linkedin.com",
-    "https://facebook.com",
-    "https://instagram.com",
+  logo: {
+    "@type": "ImageObject",
+    url: "https://youthemployment.ca/logo.svg",
+    width: "240",
+    height: "60",
+  },
+  description:
+    "A national Canadian employment resource connecting young job seekers, high school students, college and university graduates with verified inclusive employers across Canada.",
+  areaServed: {
+    "@type": "Country",
+    name: "Canada",
+  },
+  knowsAbout: [
+    "Youth Employment in Canada",
+    "Student Jobs in Canada",
+    "Summer Jobs Canada",
+    "Entry Level Jobs Canada",
+    "Internships Canada",
+    "Canadian Labor Standards",
   ],
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: "CA",
+    addressRegion: "Canada",
+  },
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "Customer Support",

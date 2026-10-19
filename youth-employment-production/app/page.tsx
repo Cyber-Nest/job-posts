@@ -33,6 +33,61 @@ export const metadata: Metadata = {
   },
 };
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How can students and young Canadians find jobs on Youth Employment Canada?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Job seekers can freely browse verified student, summer, part-time, and entry-level positions across Canada without mandatory registration. Filter by province, remote preference, or category, and apply directly to verified employers.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is the minimum legal working age in Canada?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "The legal working age varies by province: youth aged 14–15 can work in Ontario and British Columbia with hourly restrictions during school periods; Alberta permits approved light employment starting at age 13 with parental consent; and youth aged 16+ can work standard roles nationwide adhering to provincial labor standards.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Are all employers and job postings verified?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes, every employer and job posting on Youth Employment Canada is reviewed to ensure compliance with provincial Employment Standards Acts, minimum wage regulations, and safe workplace practices.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Does Youth Employment Canada charge job seekers any fees?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No, Youth Employment Canada is 100% free for all students, youth, and early-career job seekers. You can search, view compensation, and apply directly without any costs.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can international students in Canada apply for jobs on this platform?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes, international students with valid Canadian study permits allowing off-campus work, as well as recent graduates with Post-Graduation Work Permits (PGWP), are eligible to apply for positions matching their work authorization.",
+      },
+    },
+  ],
+};
+
 export default function Page() {
-  return <HomePage />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <HomePage />
+    </>
+  );
 }

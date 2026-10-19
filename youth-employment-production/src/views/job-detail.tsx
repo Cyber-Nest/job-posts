@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Helmet } from "@dr.pogodin/react-helmet";
 import { Link, useParams } from "@/router";
 import { motion } from "motion/react";
 import {
@@ -20,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Job } from "@/lib/jobs-data";
 import { apiClient } from "@/lib/api-client";
-import { formatJobId } from "@/lib/utils";
+import { formatJobId, getJobSlug, extractJobId } from "@/lib/utils";
 
 /* ── Animations ─────────────────────────────────────────────────────── */
 const fadeUp = {
@@ -53,7 +52,7 @@ function normalizeListField(value: unknown): string[] {
 function RelatedCard({ job }: { job: Job }) {
   return (
     <Link
-      to={`/jobs/${job.id}`}
+      to={`/jobs/${getJobSlug(job)}`}
       className="group flex gap-3 p-4 rounded-xl border border-blue-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-200"
     >
       <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center flex-shrink-0">
@@ -79,20 +78,20 @@ function RelatedCard({ job }: { job: Job }) {
 /* ── Main page ──────────────────────────────────────────────────────── */
 export default function JobDetailPage({ initialJob }: { initialJob?: Job | null } = {}) {
   const { id } = useParams<{ id: string }>();
+  const cleanId = extractJobId(id);
   const [job, setJob] = useState<Job | null>(initialJob || null);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(!initialJob);
   const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
-    if (initialJob && (initialJob.id === id || String((initialJob as any)._id) === id)) {
+    if (initialJob && (initialJob.id === cleanId || String((initialJob as any)._id) === cleanId)) {
       setJob(initialJob);
       setLoading(false);
       return;
     }
 
-    const jobId = id;
-    if (!jobId) {
+    if (!cleanId) {
       setLoading(false);
       setJob(null);
       return;
@@ -102,7 +101,7 @@ export default function JobDetailPage({ initialJob }: { initialJob?: Job | null 
       setLoading(true);
       setFetchError("");
       try {
-        const data = await apiClient.get(`/jobs/${jobId}`);
+        const data = await apiClient.get(`/jobs/${cleanId}`);
         const jobData = data.data || data.job;
         setJob(jobData);
       } catch (error) {
@@ -116,7 +115,7 @@ export default function JobDetailPage({ initialJob }: { initialJob?: Job | null 
     }
 
     loadJob();
-  }, [id, initialJob]);
+  }, [cleanId, initialJob]);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -239,23 +238,12 @@ export default function JobDetailPage({ initialJob }: { initialJob?: Job | null 
   );
 
   if (loading) {
-    return (
-      <>
-        <Helmet>
-          <title>Loading Job — Youth Employment Canada</title>
-        </Helmet>
-        <JobDetailSkeleton />
-      </>
-    );
+    return <JobDetailSkeleton />;
   }
 
   if (!job) {
     return (
-      <>
-        <Helmet>
-          <title>Job Not Found — Youth Employment Canada</title>
-        </Helmet>
-        <section className="bg-blue-50 min-h-[60vh] flex items-center justify-center py-20 px-4">
+      <section className="bg-blue-50 min-h-[60vh] flex items-center justify-center py-20 px-4">
           <div className="text-center max-w-md">
             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-5">
               <AlertCircle size={28} className="text-blue-600" />
@@ -277,27 +265,11 @@ export default function JobDetailPage({ initialJob }: { initialJob?: Job | null 
             </Link>
           </div>
         </section>
-      </>
     );
   }
 
   return (
     <>
-      <Helmet>
-        <title>
-          {job.title} at {job.company} ({job.location || "Canada"}) — Youth Employment Canada
-        </title>
-        <meta
-          name="description"
-          content={`Apply for ${job.title} at ${job.company} in ${job.location || "Canada"}. ${job.employmentType || ""} position. ${job.salary ? `Salary: ${job.salary}.` : ""} Search youth jobs in Canada on Youth Employment Canada.`}
-        />
-        <meta
-          name="keywords"
-          content={`${job.title}, ${job.title} jobs Canada, ${job.company} careers, jobs in ${job.location || "Canada"}, youth employment canada, jobs in canada`}
-        />
-        <link rel="canonical" href={`https://youthemployment.ca/jobs/${job.id}`} />
-      </Helmet>
-
       {/* ── Breadcrumb ──────────────────────────────────────────── */}
       <div className="bg-blue-50 border-b border-blue-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">

@@ -8,6 +8,9 @@ const API_BASE =
 async function fetchJobData(id: string) {
   try {
     const res = await fetch(`${API_BASE}/jobs/${id}`, {
+      headers: {
+        'X-Site-ID': 'youthemployment',
+      },
       next: { revalidate: 60 },
     });
     if (!res.ok) return null;
@@ -47,28 +50,29 @@ function generateJobPostingSchema(job: any, id: string) {
     description:
       job.descriptionHtml ||
       job.description ||
-      `<p>${job.title} at ${job.company} in ${job.location || 'Canada'}. Apply on Youth Employment Canada.</p>`,
+      `<p>${job.title} at ${job.company} in ${job.location || 'Canada'}. Apply directly on Youth Employment Canada.</p>`,
     identifier: {
       '@type': 'PropertyValue',
       name: 'Youth Employment Canada',
-      value: job.jobUniqueId || job.id || id,
+      value: String(job.jobUniqueId || job.id || job._id || id),
     },
     datePosted: job.jobPostingDate || job.createdAt || new Date().toISOString(),
     validThrough: job.closingDate
       ? new Date(job.closingDate).toISOString()
       : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
     employmentType: mapEmploymentType(job.employmentType),
+    directApply: true,
     hiringOrganization: {
       '@type': 'Organization',
       name: job.company || 'Youth Employment Canada',
-      sameAs: 'https://youthemployment.ca',
-      logo: 'https://youthemployment.ca/logo.svg',
+      ...(job.companyWebsite ? { sameAs: job.companyWebsite } : {}),
+      ...(job.companyLogo ? { logo: job.companyLogo } : {}),
     },
     jobLocation: {
       '@type': 'Place',
       address: {
         '@type': 'PostalAddress',
-        addressLocality: job.location || 'Toronto',
+        addressLocality: job.city || job.location || 'Toronto',
         addressRegion: job.province || 'ON',
         addressCountry: 'CA',
       },
@@ -98,6 +102,8 @@ function generateJobPostingSchema(job: any, id: string) {
   };
 }
 
+import { extractJobId, getJobSlug } from '@/lib/utils';
+
 type PageProps = {
   params: Promise<{ id: string }>;
 };
@@ -106,14 +112,15 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  if (!id) {
+  const rawId = extractJobId(id);
+  if (!rawId) {
     return {
       title: 'Job Posting — Youth Employment Canada',
       description: 'Find jobs and career opportunities across Canada.',
     };
   }
 
-  const job = await fetchJobData(id);
+  const job = await fetchJobData(rawId);
 
   if (!job) {
     return {
@@ -133,6 +140,9 @@ export async function generateMetadata({
     plainDesc ||
     `Apply for ${job.title} at ${job.company} in ${job.location || 'Canada'}. ${job.employmentType || ''} position. Search youth & student jobs on Youth Employment Canada.`;
 
+  const canonicalSlug = getJobSlug(job) || rawId;
+  const canonicalUrl = `https://youthemployment.ca/jobs/${canonicalSlug}`;
+
   return {
     title,
     description,
@@ -148,12 +158,12 @@ export async function generateMetadata({
       'Entry level jobs Canada',
     ],
     alternates: {
-      canonical: `https://youthemployment.ca/jobs/${id}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
       title: `${title} | Youth Employment Canada`,
       description,
-      url: `https://youthemployment.ca/jobs/${id}`,
+      url: canonicalUrl,
       siteName: 'Youth Employment Canada',
       locale: 'en_CA',
       type: 'article',
@@ -170,11 +180,44 @@ export default async function Page({
   params,
 }: PageProps) {
   const { id } = await params;
-  const job = id ? await fetchJobData(id) : null;
-  const schema = generateJobPostingSchema(job, id);
+  const rawId = extractJobId(id);
+  const job = rawId ? await fetchJobData(rawId) : null;
+  const schema = generateJobPostingSchema(job, rawId || id);
+
+  const canonicalSlug = getJobSlug(job) || rawId || id;
+  const canonicalUrl = `https://youthemployment.ca/jobs/${canonicalSlug}`;
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://youthemployment.ca',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Jobs',
+        item: 'https://youthemployment.ca/jobs',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: job ? job.title : 'Job Opportunity',
+        item: canonicalUrl,
+      },
+    ],
+  };
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {schema && (
         <script
           type="application/ld+json"

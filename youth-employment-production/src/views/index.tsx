@@ -3,7 +3,6 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@/router";
-import { Helmet } from "@dr.pogodin/react-helmet";
 import {
   Search,
   MapPin,
@@ -19,10 +18,13 @@ import {
   CrownIcon,
   ShieldCheck,
   Zap,
+  ChevronDown,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api-client";
+import { getJobSlug } from "@/lib/utils";
 
 // ─── Animation Variants ───────────────────────────────────────────────────────
 
@@ -413,20 +415,6 @@ export default function HomePage() {
 
   return (
     <>
-      <Helmet>
-        <title>
-          Youth Employment Canada — Find Jobs for Youth, Students & Graduates in Canada
-        </title>
-        <meta
-          name="description"
-          content="Canada’s premier youth employment network. Connect with inclusive Canadian employers, explore verified job opportunities, post jobs, and find jobs in Canada."
-        />
-        <meta
-          name="keywords"
-          content="Jobs in Canada, Youth Employment Canada, Jobs for youth Canada, Student jobs in Canada, Entry level jobs Canada, Summer jobs Canada"
-        />
-      </Helmet>
-
       {/* ── 1. HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden min-h-[92vh] flex items-center bg-gradient-to-b from-blue-50 to-white">
         {/* Background overlay */}
@@ -447,12 +435,12 @@ export default function HomePage() {
             </motion.p>
             <motion.h1
               variants={fadeUp}
-              className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-6"
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Launch Your Next
+              Youth & Student Jobs in Canada
               <br />
-              <span className="text-blue-600">Career with Confidence.</span>
+              <span className="text-blue-600">Launch Your Career with Confidence.</span>
             </motion.h1>
             <motion.p
               variants={fadeUp}
@@ -638,7 +626,7 @@ export default function HomePage() {
                   <JobSearchCard
                     key={job.id || index}
                     job={job}
-                    onClick={() => navigate(`/jobs/${job.id}`)}
+                    onClick={() => navigate(`/jobs/${getJobSlug(job)}`)}
                   />
                 ))}
               </div>
@@ -903,7 +891,7 @@ export default function HomePage() {
                     <span>{job.location}</span>
                   </div>
                   <Link
-                    to={`/jobs/${job.id || ""}`}
+                    to={`/jobs/${getJobSlug(job)}`}
                     className="inline-flex items-center gap-1.5 text-[#2563EB] text-sm font-semibold hover:gap-2.5 transition-all duration-200"
                   >
                     View Job <ArrowRight size={14} />
@@ -1431,6 +1419,68 @@ export default function HomePage() {
               </motion.div>
             ))}
           </motion.div>
+        </div>
+      </section>
+
+      {/* ── 7.5 FAQ SECTION (Google AI Overview & Rich Answers) ─────────────── */}
+      <section className="py-20 lg:py-24 bg-white border-t border-blue-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-600 bg-blue-50 px-3.5 py-1 rounded-full border border-blue-200 mb-3">
+              <HelpCircle size={14} />
+              Frequently Asked Questions
+            </span>
+            <h2
+              className="text-3xl sm:text-4xl font-bold text-gray-900"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Everything You Need to Know About Youth Jobs in Canada
+            </h2>
+            <p className="mt-3 text-gray-600 max-w-xl mx-auto text-sm sm:text-base">
+              Clear, verified answers to common questions about finding student, summer, and entry-level employment across Canadian provinces.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              {
+                q: "How can students and young Canadians find jobs on Youth Employment Canada?",
+                a: "Job seekers can freely browse thousands of student, summer, part-time, and entry-level positions without mandatory registration. Use our search filters by province, city, remote preference, and category to view compensations and apply directly to verified employers.",
+              },
+              {
+                q: "What is the minimum legal working age in Canada?",
+                a: "The legal working age varies by province. In Ontario and British Columbia, youth aged 14 and 15 can work with hourly restrictions during school periods in approved non-hazardous settings. In Alberta, youth aged 13 and 14 can work in approved light-duty jobs with parental consent. Youths aged 16 and older can work standard positions nationwide under provincial Employment Standards Acts.",
+              },
+              {
+                q: "Are all employers and job postings verified?",
+                a: "Yes. Every employer and job posting on Youth Employment Canada is reviewed to ensure adherence to Canadian labor standards, provincial minimum wage mandates, and legitimate workplace conditions.",
+              },
+              {
+                q: "Does Youth Employment Canada charge job seekers any fees?",
+                a: "No. The platform is 100% free for all students, youth, and early-career job seekers. You can search, explore salary ranges, and submit job applications at zero cost.",
+              },
+              {
+                q: "Can international students in Canada apply for jobs on this platform?",
+                a: "Yes. International students in Canada holding valid study permits with off-campus work authorization, as well as recent graduates on Post-Graduation Work Permits (PGWP), can apply to eligible positions matching their legal work authorizations.",
+              },
+            ].map((item, idx) => (
+              <details
+                key={idx}
+                className="group rounded-2xl border border-blue-100 bg-blue-50/40 p-5 transition-all duration-200 hover:border-blue-300 open:bg-blue-50/70"
+              >
+                <summary className="flex cursor-pointer items-center justify-between text-base sm:text-lg font-semibold text-gray-900 list-none">
+                  <span>{item.q}</span>
+                  <ChevronDown
+                    size={18}
+                    className="text-blue-600 transition-transform duration-200 group-open:rotate-180 flex-shrink-0 ml-4"
+                  />
+                </summary>
+                <p className="mt-3 text-sm sm:text-base text-gray-700 leading-relaxed pt-2 border-t border-blue-100/60">
+                  {item.a}
+                </p>
+              </details>
+            ))}
+          </div>
         </div>
       </section>
 

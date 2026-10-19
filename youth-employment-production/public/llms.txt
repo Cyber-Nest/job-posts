@@ -1,0 +1,44 @@
+# Youth Employment Canada (youthemployment.ca)
+
+> Youth Employment Canada is a dedicated nationwide employment portal connecting young Canadians, high school students, college and university graduates, and emerging talent with inclusive, verified employers across all 10 provinces and 3 territories in Canada.
+
+## Overview & Mission
+- **Website**: https://youthemployment.ca
+- **Primary Mission**: Bridge the transition from education to meaningful employment for Canadian youth, fostering inclusive hiring and equitable workplace opportunities.
+- **Audience**: Canadian youth (ages 15–30), students, recent graduates, early-career job seekers, and Canadian employers hiring entry-level talent.
+- **Service Model**: 100% free for job seekers. Transparent job posting plans for Canadian employers.
+
+## Geographical Coverage Across Canada
+Youth Employment Canada provides localized job listings nationwide:
+- **Ontario**: Toronto, Ottawa, Mississauga, Brampton, Hamilton, London, Kitchener-Waterloo
+- **British Columbia**: Vancouver, Victoria, Surrey, Burnaby, Kelowna
+- **Alberta**: Calgary, Edmonton, Red Deer, Lethbridge
+- **Quebec**: Montreal, Quebec City, Gatineau
+- **Manitoba**: Winnipeg, Brandon
+- **Saskatchewan**: Saskatoon, Regina
+- **Atlantic Canada**: Nova Scotia (Halifax), New Brunswick (Moncton, Fredericton), Newfoundland & Labrador (St. John's), Prince Edward Island (Charlottetown)
+- **Territories**: Yukon, Northwest Territories, Nunavut
+- **Remote / Telecommute**: Nationwide work-from-home opportunities for Canadian youth
+
+## Primary Employment Categories
+- Student & Summer Employment
+- Entry-Level Professional Roles
+- Internships & Co-op Placements
+- Part-Time & Weekend Work
+- Full-Time Career Starter Positions
+- Apprenticeships & Skilled Trades
+- Technology, Administration, Healthcare, Retail, and Hospitality
+
+## Verified Employer Guidelines
+All employers posting on Youth Employment Canada are verified to ensure:
+1. Compliance with Canadian provincial and federal employment standards (Employment Standards Act).
+2. Adherence to provincial minimum wage laws.
+3. Safe, supportive, and inclusive work environments.
+4. Direct, transparent application processes without third-party paywalls.
+
+## Official Links & Resources
+- **Browse All Jobs**: https://youthemployment.ca/jobs
+- **For Employers (Post a Job)**: https://youthemployment.ca/employers
+- **About the Platform**: https://youthemployment.ca/about
+- **Contact & Support**: https://youthemployment.ca/contact
+- **XML Sitemap**: https://youthemployment.ca/sitemap.xml

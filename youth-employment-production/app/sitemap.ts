@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { getJobSlug } from '@/lib/utils';
 
 const BASE_URL = 'https://youthemployment.ca';
 const BACKEND_URL =
@@ -63,7 +64,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const res = await fetch(`${BACKEND_URL}/jobs`, {
+    const res = await fetch(`${BACKEND_URL}/jobs?limit=500`, {
+      headers: {
+        'X-Site-ID': 'youthemployment',
+      },
       next: { revalidate: 3600 },
     });
 
@@ -72,17 +76,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const jobsList = data.data || data.jobs || [];
 
       const dynamicJobRoutes: MetadataRoute.Sitemap = jobsList
-        .filter((job: any) => job && job.id)
-        .map((job: any) => ({
-          url: `${BASE_URL}/jobs/${job.id}`,
-          lastModified: job.updatedAt
-            ? new Date(job.updatedAt)
-            : job.createdAt
-            ? new Date(job.createdAt)
-            : new Date(),
-          changeFrequency: 'daily',
-          priority: 0.85,
-        }));
+        .filter((job: any) => job && (job.id || job._id))
+        .map((job: any) => {
+          const jobId = job.id || job._id;
+          const slug = getJobSlug(job) || jobId;
+          return {
+            url: `${BASE_URL}/jobs/${slug}`,
+            lastModified: job.updatedAt
+              ? new Date(job.updatedAt)
+              : job.createdAt
+              ? new Date(job.createdAt)
+              : new Date(),
+            changeFrequency: 'daily',
+            priority: 0.85,
+          };
+        });
 
       return [...staticRoutes, ...dynamicJobRoutes];
     }
