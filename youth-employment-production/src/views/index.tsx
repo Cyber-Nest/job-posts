@@ -416,45 +416,46 @@ export default function HomePage() {
   return (
     <>
       {/* ── 1. HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden min-h-[92vh] flex items-center bg-gradient-to-b from-blue-50 to-white">
+      <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white">
         {/* Background overlay */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.08),_transparent_25%),linear-gradient(180deg,_rgba(37,99,235,0.04),_rgba(248,250,252,0.0))]" />
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-14 sm:pt-10 sm:pb-16 lg:pt-12 lg:pb-20">
           <motion.div
             variants={stagger}
             initial="hidden"
             animate="visible"
             className="max-w-2xl"
           >
-            <motion.p
+            <motion.div
               variants={fadeUp}
-              className="text-blue-600 font-semibold text-sm uppercase tracking-widest mb-5"
+              className="inline-flex items-center gap-2 bg-blue-100/70 border border-blue-200/80 text-blue-700 text-xs sm:text-sm font-semibold px-3.5 py-1.5 rounded-full mb-4 w-fit"
             >
-              Youth Employment Across Canada
-            </motion.p>
+              <span>🇨🇦</span>
+              <span>Canada’s Youth & Student Job Network</span>
+            </motion.div>
             <motion.h1
               variants={fadeUp}
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6"
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-4"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Youth & Student Jobs in Canada
+              Launch Your Next
               <br />
-              <span className="text-blue-600">Launch Your Career with Confidence.</span>
+              <span className="text-blue-600">Career with Confidence.</span>
             </motion.h1>
             <motion.p
               variants={fadeUp}
-              className="text-lg text-gray-600 leading-relaxed mb-10 max-w-xl"
+              className="text-base sm:text-lg text-gray-600 leading-relaxed mb-6 max-w-xl"
             >
-              Bringing young Canadians and inclusive employers together across
-              every province and territory. Search jobs, connect with employers,
-              and grow your career.
+              Bringing young Canadians and inclusive employers together. Search
+              thousands of verified student, summer, and entry-level jobs across
+              every province and territory.
             </motion.p>
 
             {/* Search Bar */}
             <motion.div
               variants={fadeUp}
-              className="bg-white rounded-2xl shadow-2xl p-2 flex flex-col sm:flex-row gap-2 max-w-2xl mb-8"
+              className="bg-white rounded-2xl shadow-xl p-2 flex flex-col sm:flex-row gap-2 max-w-2xl mb-6"
             >
               <div className="flex items-center gap-2 flex-1 px-3">
                 <Search size={18} className="text-blue-600 flex-shrink-0" />
