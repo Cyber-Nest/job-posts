@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     'Employer support Canada',
   ],
   alternates: {
-    canonical: 'https://youthemployment.ca/contact',
+    canonical: 'https://www.youthemployment.ca/contact',
   },
 };
 

@@ -22,4 +22,4 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
-Sitemap: https://youthemployment.ca/sitemap.xml
+Sitemap: https://www.youthemployment.ca/sitemap.xml

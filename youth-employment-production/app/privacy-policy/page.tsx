@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Read the Privacy Policy of Youth Employment Canada to understand how we protect and handle your personal information.',
   alternates: {
-    canonical: 'https://youthemployment.ca/privacy-policy',
+    canonical: 'https://www.youthemployment.ca/privacy-policy',
   },
 };
 

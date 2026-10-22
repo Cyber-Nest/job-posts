@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     'Student recruitment Canada',
   ],
   alternates: {
-    canonical: 'https://youthemployment.ca/employers',
+    canonical: 'https://www.youthemployment.ca/employers',
   },
 };
 

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     'Employer pricing Youth Employment Canada',
   ],
   alternates: {
-    canonical: 'https://youthemployment.ca/pricing',
+    canonical: 'https://www.youthemployment.ca/pricing',
   },
 };
 

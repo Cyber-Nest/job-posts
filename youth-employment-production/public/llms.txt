@@ -3,7 +3,7 @@
 > Youth Employment Canada is a dedicated nationwide employment portal connecting young Canadians, high school students, college and university graduates, and emerging talent with inclusive, verified employers across all 10 provinces and 3 territories in Canada.
 
 ## Overview & Mission
-- **Website**: https://youthemployment.ca
+- **Website**: https://www.youthemployment.ca
 - **Primary Mission**: Bridge the transition from education to meaningful employment for Canadian youth, fostering inclusive hiring and equitable workplace opportunities.
 - **Audience**: Canadian youth (ages 15–30), students, recent graduates, early-career job seekers, and Canadian employers hiring entry-level talent.
 - **Service Model**: 100% free for job seekers. Transparent job posting plans for Canadian employers.
@@ -37,8 +37,8 @@ All employers posting on Youth Employment Canada are verified to ensure:
 4. Direct, transparent application processes without third-party paywalls.
 
 ## Official Links & Resources
-- **Browse All Jobs**: https://youthemployment.ca/jobs
-- **For Employers (Post a Job)**: https://youthemployment.ca/employers
-- **About the Platform**: https://youthemployment.ca/about
-- **Contact & Support**: https://youthemployment.ca/contact
-- **XML Sitemap**: https://youthemployment.ca/sitemap.xml
+- **Browse All Jobs**: https://www.youthemployment.ca/jobs
+- **For Employers (Post a Job)**: https://www.youthemployment.ca/employers
+- **About the Platform**: https://www.youthemployment.ca/about
+- **Contact & Support**: https://www.youthemployment.ca/contact
+- **XML Sitemap**: https://www.youthemployment.ca/sitemap.xml

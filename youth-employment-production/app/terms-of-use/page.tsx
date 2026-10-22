@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Review the terms of use governing the use of the Youth Employment Canada job board and services.',
   alternates: {
-    canonical: 'https://youthemployment.ca/terms-of-use',
+    canonical: 'https://www.youthemployment.ca/terms-of-use',
   },
 };
 

@@ -25,14 +25,14 @@ export const metadata: Metadata = {
     'Calgary jobs',
   ],
   alternates: {
-    canonical: 'https://youthemployment.ca/jobs',
+    canonical: 'https://www.youthemployment.ca/jobs',
   },
   openGraph: {
     title:
       'Jobs in Canada (2026) — Search Youth, Student & Entry-Level Jobs',
     description:
       'Explore verified job postings across Canada for young workers and students. Apply directly to hiring employers.',
-    url: 'https://youthemployment.ca/jobs',
+    url: 'https://www.youthemployment.ca/jobs',
     siteName: 'Youth Employment Canada',
     locale: 'en_CA',
     type: 'website',
@@ -80,7 +80,7 @@ export default async function Page() {
       '@type': 'ListItem',
       position: index + 1,
       name: `${job.title || 'Job Opening'} at ${job.company || 'Canadian Employer'}`,
-      url: `https://youthemployment.ca/jobs/${getJobSlug(job) || job.id || job._id}`,
+      url: `https://www.youthemployment.ca/jobs/${getJobSlug(job) || job.id || job._id}`,
     })),
   };
 

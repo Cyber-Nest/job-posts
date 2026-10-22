@@ -141,7 +141,7 @@ export async function generateMetadata({
     `Apply for ${job.title} at ${job.company} in ${job.location || 'Canada'}. ${job.employmentType || ''} position. Search youth & student jobs on Youth Employment Canada.`;
 
   const canonicalSlug = getJobSlug(job) || rawId;
-  const canonicalUrl = `https://youthemployment.ca/jobs/${canonicalSlug}`;
+  const canonicalUrl = `https://www.youthemployment.ca/jobs/${canonicalSlug}`;
 
   return {
     title,
@@ -185,7 +185,7 @@ export default async function Page({
   const schema = generateJobPostingSchema(job, rawId || id);
 
   const canonicalSlug = getJobSlug(job) || rawId || id;
-  const canonicalUrl = `https://youthemployment.ca/jobs/${canonicalSlug}`;
+  const canonicalUrl = `https://www.youthemployment.ca/jobs/${canonicalSlug}`;
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -195,13 +195,13 @@ export default async function Page({
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://youthemployment.ca',
+        item: 'https://www.youthemployment.ca',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Jobs',
-        item: 'https://youthemployment.ca/jobs',
+        item: 'https://www.youthemployment.ca/jobs',
       },
       {
         '@type': 'ListItem',

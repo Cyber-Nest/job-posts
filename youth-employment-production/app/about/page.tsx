@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     'Youth employment initiative Canada',
   ],
   alternates: {
-    canonical: 'https://youthemployment.ca/about',
+    canonical: 'https://www.youthemployment.ca/about',
   },
 };
 

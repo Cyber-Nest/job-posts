@@ -19,14 +19,14 @@ export const metadata: Metadata = {
     'Canada job board',
   ],
   alternates: {
-    canonical: 'https://youthemployment.ca',
+    canonical: 'https://www.youthemployment.ca',
   },
   openGraph: {
     title:
       'Youth Employment Canada — Find Jobs for Youth, Students & Graduates in Canada',
     description:
       'Explore verified youth and student job opportunities across Canada. Connect with top hiring employers today.',
-    url: 'https://youthemployment.ca',
+    url: 'https://www.youthemployment.ca',
     siteName: 'Youth Employment Canada',
     locale: 'en_CA',
     type: 'website',
