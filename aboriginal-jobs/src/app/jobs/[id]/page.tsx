@@ -1,8 +1,11 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { fetchServerJobById } from "@/lib/server-jobs";
+import { extractJobId, createJobSlug, getJobUrl } from "@/lib/slug";
 import JobDetailClient from "@/components/JobDetailClient";
 import JobPostingSchema from "@/components/seo/JobPostingSchema";
 import BreadcrumbSchema from "@/components/seo/BreadcrumbSchema";
+import JobAiSummary from "@/components/seo/JobAiSummary";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -10,7 +13,8 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const job = await fetchServerJobById(id);
+  const actualId = extractJobId(id);
+  const job = await fetchServerJobById(actualId);
 
   if (!job) {
     return {
@@ -23,9 +27,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const locationStr =
     job.location || [job.city, job.province].filter(Boolean).join(", ") || "Canada";
   const title = `${job.title} — ${job.company} (${locationStr})`;
-  const salarySnippet = job.salary ? `Salary: ${job.salary}. ` : "";
+  const salarySnippet = job.salary ? `Salary: ${job.salary} CAD. ` : "";
   const description = `Apply for ${job.title} at ${job.company} in ${locationStr}. ${salarySnippet}Discover inclusive First Nations, Métis, and Inuit careers across Canada.`;
-  const canonicalUrl = `https://aboriginal-jobs.ca/jobs/${id}`;
+  const slug = createJobSlug(job);
+  const canonicalUrl = `https://aboriginal-jobs.ca/jobs/${slug || id}`;
   const ogImage = job.companyLogo || "/og-image.png";
 
   return {
@@ -69,7 +74,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function JobPage({ params }: PageProps) {
   const { id } = await params;
-  const job = await fetchServerJobById(id);
+  const actualId = extractJobId(id);
+  const job = await fetchServerJobById(actualId);
+
+  // If user accesses raw ID or outdated slug, permanently redirect to current SEO slug
+  if (job) {
+    const canonicalSlug = createJobSlug(job);
+    if (canonicalSlug && id !== canonicalSlug) {
+      redirect(`/jobs/${canonicalSlug}`);
+    }
+  }
 
   const breadcrumbs = [
     { name: "Home", url: "/" },
@@ -86,7 +100,7 @@ export default async function JobPage({ params }: PageProps) {
   if (job?.title) {
     breadcrumbs.push({
       name: job.title,
-      url: `/jobs/${id}`,
+      url: job ? getJobUrl(job) : `/jobs/${id}`,
     });
   }
 
@@ -94,7 +108,8 @@ export default async function JobPage({ params }: PageProps) {
     <>
       {job && <JobPostingSchema job={job} />}
       <BreadcrumbSchema items={breadcrumbs} />
-      <JobDetailClient initialJob={job} id={id} />
+      {job && <JobAiSummary job={job} />}
+      <JobDetailClient initialJob={job} id={actualId} />
     </>
   );
 }

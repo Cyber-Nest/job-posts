@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MapPin, Briefcase, ChevronRight, Building2, Wifi, Leaf, CheckCircle, ArrowRight } from "lucide-react";
 import BreadcrumbSchema from "@/components/seo/BreadcrumbSchema";
 import { fetchServerActiveJobs } from "@/lib/server-jobs";
+import { getJobUrl } from "@/lib/slug";
 
 interface ProvinceConfig {
   name: string;
@@ -359,7 +360,7 @@ export default async function ProvinceJobsPage({ params }: PageProps) {
                 {provinceJobs.map((job) => (
                   <Link
                     key={job._id}
-                    href={`/jobs/${job._id}`}
+                    href={getJobUrl(job)}
                     className="block bg-white rounded-2xl p-5 border border-[#C8782A]/15 hover:border-[#C8782A]/50 hover:shadow-md transition-all duration-200 group"
                   >
                     <div className="flex items-start justify-between gap-4">

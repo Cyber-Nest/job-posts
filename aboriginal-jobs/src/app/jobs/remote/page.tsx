@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Wifi, MapPin, ChevronRight, Briefcase, Building2, Leaf, ArrowRight, CheckCircle } from "lucide-react";
 import BreadcrumbSchema from "@/components/seo/BreadcrumbSchema";
 import { fetchServerActiveJobs } from "@/lib/server-jobs";
+import { getJobUrl } from "@/lib/slug";
 
 export const metadata: Metadata = {
   title: "Remote Indigenous & Aboriginal Jobs Across Canada — Work from Home",
@@ -116,7 +117,7 @@ export default async function RemoteJobsPage() {
                 {remoteJobs.map((job) => (
                   <Link
                     key={job._id}
-                    href={`/jobs/${job._id}`}
+                    href={getJobUrl(job)}
                     className="block bg-white rounded-2xl p-5 border border-[#C8782A]/15 hover:border-[#1a64c4]/50 hover:shadow-md transition-all duration-200 group"
                   >
                     <div className="flex items-start justify-between gap-4">

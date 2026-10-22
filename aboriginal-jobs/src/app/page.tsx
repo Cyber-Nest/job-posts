@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api-client";
 import { formatJobId } from "@/lib/utils";
+import { getJobUrl } from "@/lib/slug";
 
 // ─── Animation Variants ───────────────────────────────────────────────────────
 
@@ -146,7 +147,7 @@ function JobSearchCard({ job }: { job: JobCardProps }) {
   return (
     <motion.div variants={fadeUp}>
       <div
-        onClick={() => router.push(`/jobs/${job._id}`)}
+        onClick={() => router.push(getJobUrl(job))}
         className="group block bg-white rounded-2xl border border-[#C8782A]/10 hover:border-[#C8782A]/35 hover:shadow-md transition-all duration-200 p-5 cursor-pointer"
       >
         {/* Top: Logo + Badges */}

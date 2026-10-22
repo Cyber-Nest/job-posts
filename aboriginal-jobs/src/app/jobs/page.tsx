@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { formatJobId } from "@/lib/utils";
+import { getJobUrl } from "@/lib/slug";
 import {
   Search,
   MapPin,
@@ -219,7 +220,7 @@ function JobCard({ job }: { job: Job }) {
   return (
     <motion.div variants={fadeUp}>
       <Link
-        href={`/jobs/${job._id || job.id}`}
+        href={getJobUrl(job)}
         className="group block bg-white rounded-2xl border border-[#C8782A]/10 hover:border-[#C8782A]/35 hover:shadow-md transition-all duration-200 p-5"
       >
         <div className="flex items-start justify-between gap-3 mb-3">

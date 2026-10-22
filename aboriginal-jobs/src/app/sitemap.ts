@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { fetchServerActiveJobs } from "@/lib/server-jobs";
+import { createJobSlug } from "@/lib/slug";
 
 export const revalidate = 3600; // revalidate sitemap every hour
 
@@ -109,7 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const jobs = await fetchServerActiveJobs(500);
     jobRoutes = jobs.map((job) => ({
-      url: `${baseUrl}/jobs/${job._id}`,
+      url: `${baseUrl}/jobs/${createJobSlug(job) || job._id}`,
       lastModified: job.postedAt ? new Date(job.postedAt) : now,
       changeFrequency: "daily",
       priority: job.featured ? 0.9 : 0.75,

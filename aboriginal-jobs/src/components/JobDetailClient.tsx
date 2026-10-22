@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { formatJobId } from "@/lib/utils";
+import { getJobUrl } from "@/lib/slug";
 import {
   MapPin,
   Clock,
@@ -504,7 +505,7 @@ function ShareModal({
 function RelatedCard({ job }: { job: JobDetail }) {
   return (
     <Link
-      href={`/jobs/${job._id || job.id}`}
+      href={getJobUrl(job)}
       className="group flex gap-3 p-3 sm:p-4 rounded-xl border border-[#C8782A]/10 hover:border-[#C8782A]/30 hover:bg-[#FAF5EE]/50 transition-all duration-200"
     >
       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#FAF5EE] border border-[#C8782A]/10 flex items-center justify-center flex-shrink-0">
