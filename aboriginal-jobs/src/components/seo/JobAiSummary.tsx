@@ -87,7 +87,7 @@ export default function JobAiSummary({ job }: JobAiSummaryProps) {
       />
 
       {/* Structured Fact Box for Googlebot & Users */}
-      <section className="bg-white rounded-2xl border border-[#C8782A]/20 p-6 shadow-sm my-6">
+      {/* <section className="bg-white rounded-2xl border border-[#C8782A]/20 p-6 shadow-sm my-6">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#C8782A]/15">
           <ShieldCheck className="text-[#C8782A]" size={20} />
           <h2
@@ -136,7 +136,6 @@ export default function JobAiSummary({ job }: JobAiSummaryProps) {
           </div>
         </div>
 
-        {/* Equity & TRC 92 Statement */}
         <div className="mt-4 pt-3 border-t border-[#C8782A]/10 flex items-start gap-2 text-xs text-[#2A442E] bg-[#7A9E7E]/10 rounded-xl p-3">
           <CheckCircle2 size={16} className="text-[#4a7a4e] flex-shrink-0 mt-0.5" />
           <p className="leading-relaxed">
@@ -146,7 +145,7 @@ export default function JobAiSummary({ job }: JobAiSummaryProps) {
             Inuit, and Métis candidates.
           </p>
         </div>
-      </section>
+      </section> */}
     </>
   );
 }
