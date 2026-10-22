@@ -88,10 +88,42 @@ export const metadata: Metadata = {
   },
 
   alternates: {
-    canonical: "https://aboriginal-jobs.ca",
+    canonical: "/",
   },
 
   category: "jobs",
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://aboriginal-jobs.ca/#website",
+      "url": "https://aboriginal-jobs.ca",
+      "name": "Aboriginal Jobs Canada",
+      "description":
+        "Canada's Indigenous Job Platform connecting First Nations, Métis, and Inuit job seekers with inclusive employers.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate":
+            "https://aboriginal-jobs.ca/jobs?search={search_term_string}",
+        },
+        "query-input": "required name=search_term_string",
+      },
+      "inLanguage": "en-CA",
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://aboriginal-jobs.ca/#organization",
+      "name": "Aboriginal Jobs Canada",
+      "url": "https://aboriginal-jobs.ca",
+      "logo": "https://aboriginal-jobs.ca/logo.svg",
+      "sameAs": [],
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -101,6 +133,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+      </head>
       <body className={inter.className}>
         <Providers>
           {/* <div className="min-h-screen bg-background flex flex-col">
