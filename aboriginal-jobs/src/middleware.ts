@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
-  // ─── ADMIN ROUTE PROTECTION ───────────────────────────────────────────────
+  // ─── ADMIN ROUTE PROTECTION ──────────────────────────────────────────────
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
     const adminToken = req.cookies.get("admin_token")?.value;
 
