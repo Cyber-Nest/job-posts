@@ -10,15 +10,7 @@ export async function getAllJobs(queryParams) {
   const skip = (page - 1) * limit;
 
   const query = {
-    status: "active",
-    $and: [
-      {
-        $or: [
-          { expiresAt: { $eq: null } },
-          { expiresAt: { $gt: new Date() } },
-        ],
-      },
-    ],
+    status: { $ne: "closed" },
   };
 
   if (site && site !== "all") {
