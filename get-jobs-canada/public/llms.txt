@@ -1,0 +1,33 @@
+# GetJobsCanada (https://getjobscanada.ca)
+
+> GetJobsCanada is a premier job board and career discovery platform connecting skilled professionals, newcomers, and Canadian citizens with verified employers across Canada.
+
+## Overview
+- Platform Name: GetJobsCanada
+- Official Website: https://getjobscanada.ca
+- Primary Audience: Canadian job seekers, international candidates eligible to work in Canada, and Canadian employers hiring full-time, part-time, remote, and contract talent.
+- Geographical Coverage: All 10 Provinces and 3 Territories of Canada (Ontario, British Columbia, Alberta, Quebec, Nova Scotia, Manitoba, Saskatchewan, New Brunswick, Newfoundland and Labrador, Prince Edward Island, Yukon, Northwest Territories, Nunavut).
+
+## Core Capabilities & Features
+- Job Search: Search thousands of verified job postings categorized by industry, location, NOC code, employment type, and remote status.
+- Employer Verification: Verified Canadian companies offering competitive salaries in CAD, health benefits, and career advancement.
+- Indigenous & Inclusive Employment: Dedicated support for inclusive hiring practices and Indigenous community recruitment.
+- NOC Code Classification: Full alignment with Canada's National Occupational Classification (NOC 2021) system for immigration pathways (Express Entry, PNP, LMIA-compliant postings).
+
+## Key URLs
+- Browse All Jobs: https://getjobscanada.ca/jobs
+- Post a Job (Employers): https://getjobscanada.ca/post-a-job
+- Employer Pricing & Packages: https://getjobscanada.ca/pricing
+- About GetJobsCanada: https://getjobscanada.ca/about
+- Contact & Support: https://getjobscanada.ca/contact
+- Terms of Service: https://getjobscanada.ca/terms
+- Privacy Policy: https://getjobscanada.ca/privacy
+
+## Target Industries
+- Information Technology & Software Engineering
+- Healthcare & Nursing
+- Trades, Construction & Natural Resources
+- Administration, Office & Customer Service
+- Finance, Accounting & Banking
+- Education & Social Services
+- Transportation, Logistics & Supply Chain

@@ -13,38 +13,40 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  //add in future, url
   metadataBase: new URL("https://getjobscanada.ca"),
 
   title: {
-    default: "GetJobsCanada — Canada's Leading Job Platform",
+    default: "Jobs in Canada — Find Top Careers & Remote Work | GetJobsCanada",
     template: "%s | GetJobsCanada",
   },
 
   description:
-    "GetJobsCanada connects job seekers with inclusive employers across Canada. Find jobs, post opportunities, and build your career.",
+    "Explore thousands of verified jobs in Canada. Connect with inclusive Canadian employers hiring across Ontario, British Columbia, Alberta, Quebec, and remote roles. Apply today on GetJobsCanada.",
 
   keywords: [
-    "GetJobsCanada",
+    "jobs in Canada",
     "Canada jobs",
     "Canada job board",
     "Canadian careers",
     "remote jobs Canada",
+    "work in Canada",
+    "Canada job search",
+    "jobs in Ontario",
+    "jobs in Toronto",
+    "jobs in Vancouver",
+    "jobs in Alberta",
+    "IT jobs Canada",
+    "healthcare jobs Canada",
+    "GetJobsCanada",
     "verified Canadian employers",
-    "Ontario jobs",
-    "BC jobs",
-    "Alberta careers",
-    "Quebec employment",
   ],
 
-  authors: [{ name: "GetJobsCanada" }],
+  authors: [{ name: "GetJobsCanada", url: "https://getjobscanada.ca" }],
   creator: "GetJobsCanada",
   publisher: "GetJobsCanada",
 
   icons: {
-    icon: [
-      { url: "/logo.svg", type: "image/svg+xml" },
-    ],
+    icon: [{ url: "/logo.svg", type: "image/svg+xml" }],
     shortcut: "/logo.svg",
     apple: "/logo.svg",
   },
@@ -61,32 +63,30 @@ export const metadata: Metadata = {
     },
   },
 
-  //add in future,url
   openGraph: {
     type: "website",
     locale: "en_CA",
     url: "https://getjobscanada.ca",
     siteName: "GetJobsCanada",
-    title: "GetJobsCanada — Canada's Leading Job Platform",
+    title: "Jobs in Canada — Find Top Careers & Remote Work | GetJobsCanada",
     description:
-      "Find inclusive jobs across Canada for job seekers and top employers.",
+      "Search verified jobs across Canada. Top employers hiring full-time, part-time, and remote talent.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/logo.svg",
         width: 1200,
         height: 630,
-        alt: "GetJobsCanada",
+        alt: "GetJobsCanada — Canada's Leading Job Platform",
       },
     ],
   },
 
-  //add in future, img
   twitter: {
     card: "summary_large_image",
-    title: "GetJobsCanada",
+    title: "Jobs in Canada — Find Top Careers & Remote Work | GetJobsCanada",
     description:
-      "Canada's job platform connecting talent with inclusive employers.",
-    images: ["/og-image.png"],
+      "Canada's leading job platform connecting talent with verified, inclusive employers.",
+    images: ["/logo.svg"],
   },
 
   alternates: {
@@ -96,6 +96,37 @@ export const metadata: Metadata = {
   category: "jobs",
 };
 
+// Global WebSite & Organization Schemas for Google AI Overviews & Sitelinks Search
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "GetJobsCanada",
+  alternateName: ["Get Jobs Canada", "GetJobsCanada.ca", "Canada Jobs Board"],
+  url: "https://getjobscanada.ca",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://getjobscanada.ca/jobs?query={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "GetJobsCanada",
+  url: "https://getjobscanada.ca",
+  logo: "https://getjobscanada.ca/logo.svg",
+  description:
+    "GetJobsCanada is a Canadian job portal connecting job seekers with inclusive employers across all Canadian provinces and territories.",
+  sameAs: [
+    "https://www.linkedin.com/company/getjobscanada",
+    "https://twitter.com/getjobscanada",
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -103,16 +134,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+      </head>
       <body className={inter.className}>
         <Providers>
-          {/* <div className="min-h-screen bg-background flex flex-col">
-            <Header />
-
-            <main className="flex-1">{children}</main>
-
-            <Footer />
-          </div> */}
-
           <AppShell>{children}</AppShell>
 
           {/*Toast UI */}

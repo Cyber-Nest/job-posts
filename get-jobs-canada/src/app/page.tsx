@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { buildJobUrl } from "@/lib/slug";
 import {
   Search,
   MapPin,
@@ -133,9 +134,9 @@ function NewJobCard({ job }: { job: JobCardProps }) {
 
   return (
     <motion.div variants={fadeUp} whileHover={{ y: -5 }}>
-      <div
-        onClick={() => window.open(`/jobs/${job._id}`, "_blank")}
-        className="group relative bg-white rounded-3xl border border-slate-200/90 hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-950/10 transition-all duration-300 p-6 cursor-pointer flex flex-col justify-between h-full overflow-hidden"
+      <Link
+        href={buildJobUrl(job)}
+        className="group relative block bg-white rounded-3xl border border-slate-200/90 hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-950/10 transition-all duration-300 p-6 cursor-pointer flex flex-col justify-between h-full overflow-hidden"
       >
         <div>
           {/* Header Row: Company Badge & Work Type */}
@@ -202,7 +203,7 @@ function NewJobCard({ job }: { job: JobCardProps }) {
             <ArrowUpRight size={16} />
           </div>
         </div>
-      </div>
+      </Link>
     </motion.div>
   );
 }

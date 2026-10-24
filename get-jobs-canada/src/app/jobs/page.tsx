@@ -35,6 +35,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatJobId } from "@/lib/utils";
+import { buildJobUrl } from "@/lib/slug";
 
 /* ── Constants ──────────────────────────────────────────────────────── */
 const PAGE_SIZE = 8;
@@ -222,7 +223,7 @@ function JobCard({ job, viewMode = "grid" }: { job: Job; viewMode?: "grid" | "li
   return (
     <motion.div variants={fadeUp} className="w-full">
       <Link
-        href={`/jobs/${job._id || job.id}`}
+        href={buildJobUrl(job)}
         target="_blank"
         rel="noopener noreferrer"
         className={`group relative block bg-white rounded-2xl border border-slate-200/80 hover:border-[#059669]/50 hover:shadow-md hover:shadow-emerald-950/5 transition-all duration-200 p-5 lg:p-6 overflow-hidden ${

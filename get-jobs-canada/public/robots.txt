@@ -1,2 +1,43 @@
+# GetJobsCanada Robots.txt
+# Optimized for Google Search, Google Jobs, Google AI Overviews & Major AI Crawlers
+
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /admin
+Disallow: /employers/dashboard/
+Disallow: /employers/dashboard
+Disallow: /api/
+Disallow: /payment/
+
+# Google Search & Google AI Overviews
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Bing & Copilot
+User-agent: Bingbot
+Allow: /
+
+# OpenAI / ChatGPT Search
+User-agent: GPTBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+
+# Perplexity AI Search Engine
+User-agent: PerplexityBot
+Allow: /
+
+# Anthropic Claude
+User-agent: ClaudeBot
+Allow: /
+
+# Canonical Sitemaps
+Sitemap: https://getjobscanada.ca/sitemap.xml
+Host: https://getjobscanada.ca
